@@ -231,3 +231,116 @@ Important:
     * Use sole tenant nodes
 * To automate OS patch management for multiple VMs
     * Use VM manager
+
+# ~~~~ GCP Instance groups ~~~~
+
+Group of VM instances managed as a single entity
+
+* Manage group of similar VMs having a similar lifecycle as ONE UNIT
+
+* Two types of Instance groups (Like AWS auto scaling groups)
+    * Managed: Identical VMs created using a template:
+        * Features: Auto scaling, auto healing and managed releases
+    * Unmanaged: Different configuration for VMs in same group:
+        * Does NOT offer auto scaling, auto healing & other services
+* Location can be zonal or regional
+
+### Managed instance groups
+
+* Identical VMs created using an instance template
+* Instance template is mandatory
+* Importan features:
+    * Maintain certain number of instances
+        * if an instance crashes, MIG launches another instance
+    * Detect application failures using health checks(Self healing)
+    * Increase and decrease instances based on load(Auto scaling)
+        * Max number of instances
+        * Min number of instances
+        * Autoscaling metrics: CPU utilization target or load balancer utilization
+        target or Any other metric from stack driver:
+            * Cooldown perdiod: How long to wait before looking at auto scaling metrics again
+            * Scale in Controls: Prevent a sudden drop in no of VM instances
+                * Example: Don't scale in by more than 10% or 3 instances in 5 minutes
+* Add Load Balancer to distribute load
+* Create instances in multiple zones (regional MIG)
+* Release new application versions without downtime
+    * Rolling updates: release new version step by step (gradually). Update
+    a percentage of instances to the new version at a time
+    * Canary Deployment: Test new version with a group of instances before
+    releasing it across all instances
+
+___Rolling Update___
+
+Gradual update of instances in an instance group to the new instance template
+* Specify new template
+    * Optional -> Specify a template for canary testing
+* Specify how yuo want the update to be done:
+    * When should the update happen?
+        * Start the update immediately (Proactive) or when instance group is resized
+        later (Opportunistic)
+    * How should the update happen?
+        * Maximum surge: How many instances are addded at any point in time?
+        * Maximum unavailable: How many instances can be offline during the update
+* Rolling restart/replace: Gradual restart or replace of all instances in the group
+    * No change in template but replace/restart existing VMs
+    * Configure Maximum surge, Maximum unavailable and What you want to do? (Restart/Replace)
+
+### Gcloud managed instances
+
+___Create___
+
+* gcloud compute instance-groups managed
+    * Create instance group: create
+        * gcloud compute instance-gropups managed create my-mig --zone us-central1-a --template
+        my-template --size 1
+            * --health-check=HEALTH_CHECK: how you do decide if an instance is healthy?
+            * --initial-delay= How much time should you give an instance to start?
+* Setup auto scaling: set-autoscaling/stop-autoscaling
+    * gcloud compute instance-groups managed set-autoscaling my-mig --max-num-replicas=10
+        * --cool-down-perdiod(default 60s): how much time should auto scaler wait after initiating an autoscaling action?
+        * --scale-based-on-cpu --target-cpu-utilization
+        * --scale-based-on-load-balancing --target-load-balacing-utilization
+        * --min-num-replicas --mode(off/on/only-stale-out)
+    * gcloud compute instance-groups managed stop-autoscaling my mig
+* Update existing MIG policies (ex: auto healing policies):
+    * gcloud compute instance-groups managed update my-mig
+        * --initial-delay: how much time should you give to the isntance to start before marking ita s unhealthy?
+        * --health-check: how do you decide if an instance is healthy?
+
+___Update___
+
+* Resize the group:
+    * gcloud compute instance-groups managed resize my-mig --size=5
+* Recreate one or more instances(delete and recreate instances):
+    * gcloud compute instance-groups managed recreate-instances my-mig --instances=my-instance-1, my-instance-2
+* Update specific instances:
+    * gcloud compute instance-groups managed update-instances my-mig --instances=my-instance-3,my-instance-4 (Update specific instances from the group)
+        * --minimal-action=none(default)/refresh/replace/restart
+        * --most-disruptive-allowed-action=none(default)/refresh/replace/restart
+* Update instance template:
+    * gcloud compute instance-groups managed set-instance-template my-mig --template=v2-template
+
+___Rolling___
+
+New release without downtime from v1 to v2 (After updating instance template)
+
+* gcloud compute instance-groups managed rolling-action
+    * Restart: gcloud compute instance-groups managed rolling-action restart my-mig
+        * --max-surge=5% or 10% (Max no of instances updated at a time)
+    * Replace: gcloud compute instance-groups managed rolling-action replace my-mig
+        * --max-surge=5% or 10% (Max no of instances updated at a time)
+        * --max-unavailable=5% or 10% (Max no of instances that can be down for the update)
+        * --replacement-method=recreate/substitute(substitute) create instances with new names, recreate reuses names
+    * Update instances to a new template:
+        * Basic version (Update all instances slowly step by step): gcloud compute instance-groups managed rolling-action start-update my-mig --version=template=v1-template
+
+
+___Important___
+
+* **Create -> gcloud compute instance-gropups managed create**
+* **AutoScaling -> gcloud compute instance-groups managed set-autoscaling/stop-autoscaling my-mig**
+* **Updatepolicies -> gcloud compute instance-groups managed update my-mig**
+* **Resize -> gcloud compute instance-groups managed resize**
+* **Recreate -> gcloud compute instance-groups managed recreate-instances**
+* **Updateinstance -> cloud compute instance-groups managed update-instances**
+* **Update instance template -> gcloud compute instance-groups managed set-instance-template**
