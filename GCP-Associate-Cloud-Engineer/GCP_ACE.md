@@ -344,3 +344,166 @@ ___Important___
 * **Recreate -> gcloud compute instance-groups managed recreate-instances**
 * **Updateinstance -> cloud compute instance-groups managed update-instances**
 * **Update instance template -> gcloud compute instance-groups managed set-instance-template**
+
+
+# ~~~~ GCP Cloud load balancing ~~~~
+
+Distributes user traffic across instances of an application in single region or multiple regions
+
+* Fully distributed, software defined managed service
+* Importante features:
+    * Health checks - Route to healthy instances
+        * Recover from failures
+    * Auto Scaling
+    * Global load balancing with single anycast IP
+        * Supports internal load balancing
+* Enables:
+    * High availability
+    * Auto scaling
+    * Resiliency
+
+### SSL/TLS Termination/Offloading
+
+* Client to Load balancer: Over internet
+    * HTTPS recommended
+* Load Balancer to VM instance: Through Google internal network
+    * HTTP is ok. HTTPS is preferred
+* SSL/TLS Termination/Offloading
+    * Client to Load balancer: HTTPS/TLS
+    * Load balancer to VM instance: HTTP/TCP
+
+___Choosing load balancer___
+
+
+* External HTTPs Load balancer
+    * Global, external, HTTP or HTTPS
+    * Proxy pass
+    * Destination - HTTP 80,8080 ports or HTTPS 443 Port
+* Internal HTTPs Load balancer
+    * Regional, internal, HTTP or HTTPS
+    * Proxy pass
+    * Destination - HTTP 80,8080 ports or HTTPS 443 Port
+* SSL proxy
+    * Global, External, TCP with SSL offload
+    * Proxy pass
+    * A big list of destinations
+* TCP proxy
+    * Global, External, TCP without SSL offload
+    * Proxy pass
+    * A big list of destinations
+* Eternal network TCP/UDP
+    * Regional,External TCP or UDP
+    * Pass-through
+    * Any destination
+* Internal TCP/UDP
+    * Regional,internal TCP or UDP
+    * Pass-through
+    * Any destination
+
+
+* Internal
+    * TCP Traffic && UDP traffic - **Internal TCP/UDP Load balancing**
+    * HTTP or HTTPS - **Internal HTTPS Load balancing**
+* External
+    * HTTP or HTTPS:
+        * Regional - **Regional External HTTPS load balancer**
+        * Non-regional - **External HTTPS Load Balancer (Global(preferred) or Classic)**
+    * TCP Traffic: 
+        * Offloading - **SSL Proxy**
+        * No-Offloading
+            * Global LB or IPv6 - **TCP Proxy**
+            * No-Global LB or IPV6
+                * Preserve Client IP - **External NetworkLoad balancing**
+                * No-preserve Client IP - **TCP Proxy**
+    * UDP - **External NetworkLoad balancing**
+
+# ~~~~ GCP Managed Services ~~~~
+
+* Compute engine
+    * High performance and general purpose VMs that scale globally - IaaS
+* GKE   
+    * Orchestrate containerized microservices on Kubernetes, Needs advanced cluster configuration
+    and monitoring - CaaS
+* App Engine
+    * Build highly scalable applications on a fully managed platform using open and
+    familiar languages and tools - Paas
+* Cloud Functions
+    * Build event driven applications using simple, single-purpose functions - Faas, Serverless
+* Cloud Run
+    * Develop and deploy highly scalable containerized applications,
+    does not need a cluster - CaaS
+
+# ~~~~ GCP App Engine ~~~~
+
+Simplest way to deploy and scale applications in GCP (Similar to AWS Beanstalk)
+
+* Provides end-to-end application management
+* Supports:
+    * Go, Java, .NET, Node.js, PHP, Python, Ruby using pre-configured runtimes
+    * Use custom run-time and write code in any language
+    * Connect to a variety of Google Cloud storage products (Cloud SQL, etc)
+* No usage charges - Pay for resources provisioned
+* Features
+    * Automatic load balancing & Auto scaling
+    * Managed platform updates & Application health monitoring
+    * Application versioning
+    * Traffic splitting
+
+___Environments Standard vs Flexible___
+
+* Standard: Applications run in language specific sandboxes
+    * Complete isolation from OS/Disk/Other Apps
+    * V1: Java, Python, PHP, Go (Old versions)
+        * ONLY for Python and PHP runtimes:
+            * Restricted network access
+            * Only white-listed extensions and libraries are allowed
+        * No restrictions for Java and Go runtimes
+    * V2: Java, Python, PHP, Node.Js, Ruby, Go (New versions)
+        * Full network access and no restrictions on Language Extensions
+* Flexible: Application instances run within docker containers
+    * Makes use of compute engine virtual machines
+    * Supports ANY runtime
+    * Provides access to background proceses and local disks
+
+Feature| Standard    | Flexible |
+|------| -------- | ------- |
+| Pricing  | Instance hours    | vCPU, Memory & Persisten Disks
+| Scaling | Manual, basic, automatic     | Manual, automatic
+| Scaling to zero    | Yes    | No, Minimum one instance
+| Instance startup  | Seconds    | Minutes
+| Rapid Scaling | Yes     | No
+| Max requests timeout   | 1 to 10 minute    | 60 minutes
+| Local Disk  | Mostly (Except for Python, PHP) can write to tmp  | Yes, Ephimeral, New disk on startup
+| SSH for Debugging | No     | Yes
+
+
+___Application Component Hierarchy___
+
+* Application: One App per project
+* Services: Multiple microservices or App components
+    * You can have multiple services in a single application
+    * Each service can have different settings
+    * Earlier called modules
+* Versions: Each version associated with code and configuration
+    * Each version can run in one or more instances
+    * Multiple versions can co-exist
+    * Options to rollback and split traffic
+
+### Scaling Instances
+
+* Automatic - Automatically scale instances based on the load:
+    *  Recommended for continously running workloads
+        * Auto scale based on:
+            * Target CPU utilization - Configure a CPU usage threshold
+            * Target Throughput utilization - Configure a throughput threshold
+            * Max concurrent requests - Configure max concurrent requests an instance can receive
+        * Configure max instances and min instances
+* Basic - Instances are created as and when requests are received
+    * Recommended for AdHoc workloads
+        * Instances are shutdown if ZERO requests
+            * Tries to keep costs low
+            * High latency is possible
+        * NOT supported by App engine Flexible environment
+        * Configure Max instances and Idle timeout
+* Manual - Configure Specific number of instances to run:
+    * Adjust number of instances manually over time
