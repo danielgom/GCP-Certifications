@@ -507,3 +507,151 @@ ___Application Component Hierarchy___
         * Configure Max instances and Idle timeout
 * Manual - Configure Specific number of instances to run:
     * Adjust number of instances manually over time
+
+### App engine app.yaml Reference example
+
+```yaml
+runtime: python39 # Name of the runtime
+api_version: 2 # String representing the app's version
+instance_class: F1
+service: service-name
+
+inbound_services:
+- warmup
+
+env_variables:
+    MY_CFG_VAR: "val1"
+
+handlers:
+    - url: /
+      script: home.app
+
+# Scaling options, choose 1, flexible cannot handle basic scaling
+automatic_scaling:
+    target_cpu_utilization: 0.65
+    min_instances: 5
+    max_instances: 100
+    max_concurrent_requests: 50
+basic_scaling:
+    max_instances: 11
+    idle_timeout: 10m
+manual_scaling:
+    instances: 5
+```
+
+### App Engine - Request routing
+
+* We can use a combination of three approaches:
+    * Routing with URLs:
+        * https://PROJECT_ID.REGION_ID.r.appspot.com (default service called)
+        * https://SERVICE-dot-PROJECT_ID.REGION_ID.r.appspot.com (specific service called)
+        * https://VERSION-dot-SERVICE-dot-PROJECT_ID.REGION_ID.r.appspot.com (specific service version called)
+        * Replace -dot- with "." if using custom domain
+* Routing with a dispatch file:
+    * Configure dispatch.yaml with routes
+    * gcloud app deploy dispatch.yaml
+* Routing with Cloud Load Balancing:
+    * Configure routes on Load Balancing instance
+
+### App Engine - Deploying with zero downtime
+
+* Option 1: Deploy & Shift all trafic at once:
+    * Deploy and shift all traffica t once from v1 to v2: gcloud app deploy
+* Option 2: Manage migration from v1 to v2
+    1. Deploy v2 without specific traffic shifting (--no-promote)
+        * gcloud app deploy --no-promote
+    2.  Shift traffic to V2:
+        * Option 1: (All at once migration): Migrate all at once to V2
+            * gcloud app services set-traffic s1 --splits v2=1
+        * Option 2: Gradual migration: Gradually shift traffic to v2. Add --migrate option
+            * Gradual mgiration is not supported by the flexible environment
+        * Option 3: Splitting: Control the pace of migration
+            * gcould app services set-traffic s1 --splits=v2=.5,v1=.5
+            * Useful to perform A/B testing
+
+### App engine traffic splitting
+
+* IP splitting - Based on requests IP Address
+    * IP addreses can cahnge causing accuracy issues
+    * If all requests originate from a corporate vpn with single IP, this can cause all requests to go to the same version
+* Cookie splitting - Based on a cookie (GOOGAPPUID)
+    * Cookies can be controlled from the application
+    * Cookie splitting accurately assigns users to versions
+* Random - Do it randomnly
+
+To split, include --split-by option in gcloud app services set-traffic command, value must be one of, cookie, ip, random
+
+### App Engine Cron Job
+
+```yaml
+cron:
+- description: "daily summary job"
+  url: /tasks/summary
+  schedule: every 24 hours
+```
+
+* Allows to run scheduled jobs at pre-defined intervals
+* Use cases:
+    * Send a report by email every day
+    * Refresh cache data every 30 minutes
+* Configured using cron.yaml
+* Run this command - gcloud app deploy cron.yaml
+    * Performs a HTTP GET requests to the configured URl on schedule
+
+### App Engine Other important yaml files
+
+* dispatch.yaml - override routing rules
+
+```yaml
+dispatch:
+- url: "*/mobile/*"
+  service: mobile-frontend
+- url: "*/work/*"
+  service: static-backend
+```
+
+* queue.yaml - manage task queues
+
+```yaml
+queue:
+- name: fooqueue
+  rate: "1/s"
+  retry_parameters:
+    task_retry_limit: 7
+    task_age_limit: 2d
+```
+
+
+### App engine important to remember
+
+* gcloud app browse/create/deploy/describe/open-console
+    * gcloud app create --region=us-central
+    * gcloud app deploy app.yaml
+        * --image-url: only for flexible environments. Deploys a docker container
+        * --promote, --no-promote (Should the new version receive traffic or not)
+        * --stop-previous-version, --no-stop-previous-version
+        * --version, assign a version, otherwise a number is generated
+    * gcloud app browse --service="myservice" --version="v1" - gives the link for the service and version
+    * gcloud app open-console --service="myservice" --version="v1"
+    * gcloud app open-console --logs
+* gcloud app delete/describe/list/scp/ssh
+    * gcloud app instances delete i1 --service=s1 --version=v1
+    * gcloud app instances descvribe --service=s1 --version=v1
+    * gcloud app instances list
+    * gcloud app instances scp --service=s1 --version=v1 --recurse local_dir i1:remove_dir
+    (Copy files to/from App Engine Flexible instances)
+    * gcloud app instances ssh --service=s1 --version=v1 i1 (SSH into the VM of an App Engine Flexible Instance)
+* gcloud app services browse/delete/describe/list/set-traffic
+    * gcloud app services list
+    * gcloud app services browse myService --version="v1"
+    * gcloud app services delete servic1 service2
+    * gcloud app services describe service1
+    * gcloud app services set-traffic APP1 --splits=v1=0.9,v2=0.1
+        * --split-by ip,cookie,random
+* gcloud app versions browse/delete/describe/list/migrate/start/stop
+    * gcloud app versions list
+        * --hide-no-traffic (Only show versions that are receiving traffic)
+    * gcloud app versions browse/delete/describe v1 --service="myService"
+    * gcloud app versions migrate v2 --service="myService"
+    * gcloud app versions start/stop v1
+        * --service=myService Only start v1 of service myService
