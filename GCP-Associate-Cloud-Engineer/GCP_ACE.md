@@ -655,3 +655,161 @@ queue:
     * gcloud app versions migrate v2 --service="myService"
     * gcloud app versions start/stop v1
         * --service=myService Only start v1 of service myService
+
+# ~~~~ GCP Google Kubernetes Engine ~~~~
+
+Managed Kubernetes service
+
+* Minimize operations with auto-repair (repair failed nodes) and auto-upgrade (user latest version of K8S always) features
+* Provides Pod and Cluster autoscaling
+* Enabled Cloud loggging and Cloud Monitoring with simple configuration
+* Use container-optimized OS. a hardened OS built by google
+* Provides support for persistent disks and Local SSD
+
+___Components___
+
+* Cluster: Group of compute engine instances:
+    * Master node - Manages the cluster
+    * Worker node - Run the workloads (pods)
+    * Node Pool - Group of nodes in a cluster with the same configuration
+* Master Node - Components:
+    * API Server - Handles all communication for a K8S cluster
+    * Scheduler - Decides the placements of the pods
+    * Control Manager - Manages Deployments and Replicasets
+    * etcd - Distributed database storing the cluster state
+* Worker Node - Components:
+    * Runs pods
+    * Kubelet - Manages communication with the master node/nodes
+
+___GKE Cluster Types___
+
+* Zonal Cluster:
+    * Single zone - Single control plane. Nodes running in the same zone
+    * Multi Zone - Single control plane but Nodes run in multiple zones
+* Regional Cluster:
+    * Replicas of the control plane runs in multiple zones of a given region. Nodes also run in same zones where control plane runs
+* Private Cluster:
+    * VPC-native cluster. Nodes only have internal IP Addresses
+* Alpha Cluster:
+    * Cluster with alpha APIs - early feature APIs used to test new K8S features
+
+### PODS
+
+* Smallest deployable unit in K8S
+* A pod contains one or more containers
+* Each pod is assigned an ephemeral IP Address
+* All containers in a pod share:
+    * Network
+    * Storage
+    * IP Address
+    * Ports
+    * Volumes (Shared persistent disks)
+* POD Statuses: Running/Pending/Succeeded/Failed/Unknown
+
+### Deployments && Replica set
+
+* A deployment is created for each microservice:
+    * kubectl create deployment m1 --image=m1:v1
+    * Deployment represents a microservice (with all its releases)
+    * Deployment manages new releases ensuring zero downtime
+* Replica set ensures that a specific number of pods are running for a specific microservice version
+    * kubectl scale deployment m2 --replicas=2
+    * Even if one of the pods is killed, replica set will launch a new one
+* Deploy V2 of microservice - Creates a new replica set
+    * kubectl set image deployment m1 m1=m1:v2
+    * V2 Replica set is created
+    * Deployments updates V2 Replica Set and V2 replica set based on the release strategies
+    
+### Service
+
+* Each pod has its own IP Address:
+    * A pod fails and is replaced by replica set
+    * A new release happens and all existing pods of old release are replaced by ones of new release
+* Create service
+    * kubectl expose deployment name --type=LoadBalancer --port=80
+        * Expose PODs to outside world using a stable IP Address
+        * Ensures that the external world does not get impacted as pods go down and come up
+* Three Types:
+    * ClusteIP: Exposes services on a cluster-internal IP
+        * use-case: Expose microservice only to be available inside the cluster (intra cluster communication)
+    * LoadBalancer: Exposes service externally using a cloud provider's load balancer
+    * NodePort: Exposes service on each Node's IP at a static port (the NodePort)
+
+### Container Registry - Image Repository
+
+Fully managed container registry provided by GCP, alternative to Docker Hub
+
+* Can be integrated to CI/CD tools to publish images to registry
+* Secure container images. Analyze for vulnerabilities and enforce deployment policies
+* Naming: HostName/ProjectID/Image: Tag - gcr.io/projectname/helloworld:1
+
+### Important to remember
+
+* Replicate master nodes accross multiple zones for high availability
+* Some CPU on the nodes is reserved by the control plane:
+    * 1st core - 6%, 2nd core - 1%,  3rd/4th - 0.5, rest 0.25
+* Creating Docker image for services(Dockerfile):
+    * Build image: docker build -t name:tag .
+    * Test locally: docker run -d -p localport:containerport name:tag
+    * Push it to containe repository: docker push name:tag
+* Kubernetes supports Stateful deployments like Kafka, Redis, Zookeper:
+    * StatefulSet - Set of pods with unique, persistent identities and stable hostnames
+* Services on Cluster Nodes:
+    * DaemonSet - One pod on every node (background services)
+* Integrates with Cloud Monitoring and Cloud logging:
+    * Cloud logging system and Apllication logs can be exported to Big Query or Pub/Sub
+* Execute untrusted third-party code in Kubernetes cluster:
+    * Create a new node pool with GKE SandBox. Deploy untrusted code to sandbox node pool
+
+# ~~~~ GCP Cloud Functions ~~~~
+
+(Similar to AWS Lambda functions)
+Run code in response to multiple or single events 
+
+* Enter Cloud Functions:
+    * Run code in response to events:
+        * Write own business logic in multiple languages
+        * Do not worry about servers, scaling or availability
+    * Pay what you use:
+        * Number of invocations
+        * Compute time of the invocations
+        * Memory and CPU provisioned
+    * Time bound - Default 1 min and MAX 60 minutes (3600 seconds)
+    * 2 Product versions:
+        * Cloud functions 1st gen: First version
+        * Cloud functions 2nd gen: New version built on top of Cloud Run and Eventarc
+
+### Concepts && Important to remember
+
+* Event: Upload object to cloud storage
+* Trigger: Respond to event with a Function call
+    * Trigger: Which function to trigger when an event happens?
+    * Functions - Take event data and perform action
+* Events are triggered from:
+    * Cloud Storage
+    * Cloud pub/sub
+    * HTTP POST/GET/DELETE/PUT/OPTIONS 
+    * Firebase
+    * Cloud Firestore
+    * Stack driver logging
+
+* No server management
+* Automatically spin up and back down in response to events, scalling horizontally
+* Cloud Functions are recommended for responding to events:
+    * Cloud functions are not ideal for long running processes
+
+# ~~~~ GCP Cloud Run ~~~~
+
+Container to production in seconds
+
+* Built on top of an open standar - Knative
+* Fully managed serverless platform for containerized applications
+    * Zero infrastructure management
+    * Pay-per-use
+* Fully integrated end-to-end developer experience:
+    * No limitations in languages, binaries and depdendencies
+    * Easily portable because of container based architecture
+    * Cloud code, Cloud Build, Cloud Monitoring & Cloud logging integrations
+* Anthos - Run kuberentes clusters anywhere
+    * Cloud, Multi Cloud and On-Premise
+* Cloud Run for Anthos: Deploy workloads to Anthos clusters running on-premises or on google cloud
