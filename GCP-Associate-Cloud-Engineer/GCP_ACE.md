@@ -779,6 +779,54 @@ Run code in response to multiple or single events
         * Cloud functions 1st gen: First version
         * Cloud functions 2nd gen: New version built on top of Cloud Run and Eventarc
 
+### Cloud functions 2nd Gen
+
+This is the recommended version to use for Cloud functions
+
+* Key enhancements:
+    * Longer request timeout: Up to 60 minutes for HTTP-triggered functions
+    * Larger instance sizes: Up to 16GiB RAM with 4 vCPU (v1 up to 8GiB RAM with 2 vCPU)
+    * Concurrency: Up to 1000 concurrent requests per function instance (v1: 1 concurrent request per function instance)
+    * Multiple Function revisions and traffic splitting: Supported (v1: Not supported)
+    * Support for 90+ Event types - enabled by Eventarc (v1: only 7)
+
+___Scaling and Concurrency___
+
+* Typical serverless functions architecture
+    * Autoscaling - As new invoctaions come in, new function instances are created
+    * One function instance handles ONLY ONE request AT A TIME
+    * 3 concurrent function invocations => 3 function instances
+        * If a 4th function invocation occurs while existing invocations are in progress, a new function instace will be created
+        * A function instance that completed execution may be reused for future requests
+    * Cold start:
+        * New function instance initialization from scratch can take time
+        * Solution - Configure min number of instances (increases cost)
+* 1st Gen uses the typical serverless functions architecture
+* 2nd Gen Adds very important features:
+    * One function instance can handle multiple requests AT THE SAME TIME:
+        * Concurrency: How many concurrent invocations can one function instance handle? (Max 1000)
+        * Code should be safe to execute concurrently
+
+___Deploying using gcloud___
+
+* gcloud functions deploy
+    * --docker-registry: registry to store the function's docker image
+        * Default -container-registry
+        * Alternatyive -artifact-registry
+    * --docker-repository: repository to store the function's Dockeri mages
+    * --gen2: use 2nd Gen
+    * --runtime: Nodejs, python, java...
+    * --service-account: Service account to user
+    * --timeout: function execution timeout
+    * --max-instances: function execution exceeding max-instances time out
+    * --min-instances: avoid cold starts at higher cost
+    * --source
+        * Zip file from google cloud storage
+        * Source repository
+        * Local file system
+    * --triger-bucket, --trigger-http, --trigger-topic, --trigger-event-filters (ONLY in gen2 - Eventarc matching criteria for the trigger)
+
+
 ### Concepts && Important to remember
 
 * Event: Upload object to cloud storage
@@ -813,3 +861,154 @@ Container to production in seconds
 * Anthos - Run kuberentes clusters anywhere
     * Cloud, Multi Cloud and On-Premise
 * Cloud Run for Anthos: Deploy workloads to Anthos clusters running on-premises or on google cloud
+
+# ~~~~ GCP Cloud KMS ~~~~
+
+* Data at rest: Stored on a device or a backup
+    * Examples: data on a hard disk, in a database, backups and archives
+* Data in motion: Being transferred across a network
+    * Also called data in transit
+    * Examples:
+        * Data copied from on-premise to cloud storage
+        * An application talking to a database
+    * Two types:
+        * in and aout of cloud (from internet)
+        * within cloud
+* Data in use: Active data processed in a non-persistent state
+    * Example: Data in RAM
+
+* Typical use of encryptions
+    * Encrypt data at rest
+    * Encrypt data in transit
+    * Encrypt data in use
+* It is not sufficient to encrypt data at rest
+    * Encrypt data in transit (between networks) is necessary to avoid intruders
+
+___Asymmetric Key Encryption___
+
+* Two Keys: Public Key and Private key
+* Also called Public key Cyptography
+* Encrypt data with Public key and depcrypt with Private Key
+* Share public key with everybody and keep private key PRIVATE
+
+___KMS___
+
+* Create and manage Cryptographic keys (Symmetric and asymmetric)
+* Control their use in application and GCP services
+* Provides and API to Encrypt, decrypt or sign data
+* Use existing cryptographic keys created on premises
+* Integrates with almost all GCP services that need data encryption
+    * Google-managed key: No configuration required
+    * Customer-managed key: Use Key from KMS (Created in Cloud KMS)
+    * Cusomer-supplied key: Provide your own key
+
+# ~~~~ GCP Block and File Storage ~~~~
+
+Types of storage handled by GCP
+
+* Type of storage of a hard disk
+    * Block storage
+* File sharing storage type
+    * File Storage
+
+### Block Storage
+
+* Hardisks attached to the computers
+* Typically, ONE block storage device can be connected to ONE virtual server
+    * We can attach read only block devices with multiple virtual servers and certain cloud providers are exploring multi-writer disks as well
+* Can connect to multiple different block storage devices to one virtual server
+* Used as:
+    * Direct-attached storage DAS - Similar to a hard disk
+    * Storage Area Network SAN - High-speed network connecting a pool of storage devices
+
+* Types
+    * Persisent disks: Network Block Storage
+        * Zonal: Data replicated in one zone
+        * Regional: Dta replicated in multiple zone
+    * Local SSDs: Local Block Storage
+
+
+___Local SSDs___
+
+Are physically attached to the host of the VM instances:
+
+* Provide very high IOPS and very low latency
+* Ephemeral storage - Temporary data (Data persists as long as the instance is running)
+    * Enable live migration for data to survive maintenance events
+* Data automatically encrypted
+    * Cannot configure encryption keys
+* Lifecycle tied to VM instance
+* Hold temporary data
+* ONLY some machine types support local SSDs
+* Supports SCSI and NVMe interfaces
+* Choose NVMe-enabled and multi-queue SCSI images for best performance
+* Larger Local SSDs (more storage), More vCPUs(attached to the VM) => Even better performance
+
+
+Advantages
+
+* Very fast I/O (10-100x compared to Persistent disks)
+* Ideal when needing high IOPs while storing temporary information
+
+Disadvantages
+
+* Ephemeral storage
+    * Lower durability, lower availability, lower flexibility compared to PDs
+    * Cannot detach and attach it to another VM
+
+___Persistent Disks___
+
+* Network block storage attached to the VM instance
+* Provisioned capacity
+* Flexible:
+    * Increase size when need it - when attached to VM instance
+    * Performance scales with size:
+        * For higher performance, resize or add more PDs
+* Independent lifecycle from VM instance:
+    * Attach or detach from one VM instance to another
+* Options: Regional/Zonal:
+    * Zonal PDs replicated in a single zone. Regional PDs replicated in 2 zones in same region
+    * Typically Regional PDs are 2x the cost of Zonal PDs
+
+Networking storage
+
+* More durable
+* Lifecycle NOT tied to VM instance
+* Permanent storage
+* No VM needed
+
+___PDs Disk Comparison table___
+
+Feature| Standard    | Balanced | SSD |
+|------| ----------- | -------- | --- |
+| Underlying storage  | Hard Disk Drive | Solid State Drive | Solid State drive
+| Referred to as | pd-standard | pd-balanced | pd-ssd
+| Performance - Sequential IOPS | Good    | Good | Very good
+| Performance - Random IOPS | Bad    | Good | Very good
+| Cost | Cheapest | In between | Expensive
+| Use cases   | Big Data (Cost efficient) | Balance between cost and performance | High performance
+
+
+___PDs Snapshots___
+
+* Take point-in-time snapshots of PDs
+* Schedule snapshots:
+    * Can auto-delete snapshots after X days
+* Snapshots can be multi-regional and regional
+* Can Share snapshots across projects
+* Can create new disks and instances from snapshots
+* Snapshots are incremental
+    * Deleting a snapshot only deletes data which is NOT needed by other snapshots
+* Keep similar data together on a Persistent Disk
+* Separate operating system, volatile data and permanent data
+* Attach multiple disks if needed
+* This helps to better organize snapshots and images
+
+### File Storage
+
+* Media workflows need huge shared storage for supporting processes like video editing
+* Enterprise users need a quick way to share files in a secure and organized way
+* These files shares are shared by several virtual servers
+
+* Types
+    * Filestore: High performance file storage
