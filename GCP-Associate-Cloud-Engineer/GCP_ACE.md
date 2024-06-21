@@ -1171,3 +1171,85 @@ ___Gsutil___
         * gsutil acl ch (Set access permissions)
         * gsutil iam ch (Set up IAM role)
         * gsutil signurl -d 10m (Set temporary signed URL for temporary access)
+
+# ~~~~ GCP Cloud Identity and Access Management (IAM) ~~~~
+
+* Authentication: Right user?
+* Authorization: Access to the desired resource?
+* Identities can be
+    * A GCP user (Google account or externally authenticated user)
+    * A Group of GCP users
+    * An application running in GCP
+    * An application running in the datacenter
+    * Unauthenticated users
+* Provides granular control
+    * Limit a single user:
+        * to perform a single action
+        * on a specific cloud resource
+        * from a specific IP address
+        * during a specific time window
+
+* Important generic concepts
+    * Member: Anyone
+    * Resource: Like a cloud storage bucket
+    * Action: Upload/Delete object
+* In Google Cloud IAM:
+    * Roles: A set of permissions to perform specific actions on specific resources
+        * Roles do NOT know about members, its all about permissions
+    * Policy: Assing or bind a role to a member
+1. Choose a Role with right permissions (Ex: Storage Object Admin)
+2. Create a policy binding memeber (anyone) with role (permissions)
+
+IAM in AWS is very different from GCP (NEVER RELATE EACHOTHER)
+
+### IAM Roles
+
+Roles in GCP are completely different from AWS roles
+
+* Roles are permissions
+    * Perform some set of actions on some set of resources
+* Three types
+    * Basic roles (primitive roles) - Owner/Editor/Viewer
+        * Viewer - Read only actions
+        * Editor - Viewer + Edit actions
+        * Owner - Editor + Manager Roles and Permissions + Billing
+        * EARLIEST VERSION: Created before IAM
+        * DO NOT USE IN PRODUCTION
+    * Predefined Roles - Fine grained roles predefined and managed by Google
+        * Different roles for different purposes
+        * e.g. Storage Admin, Storage Object Admin, Storage Object Viewer, Storage Object Creator
+    * Custom Roles - When predefined roles are NOT sufficient, we can create our own roles
+
+### IAM Policy
+
+* Roles: Permissions, What actions?, What Resources?
+* Policy: Assing Permissions to Members
+    * Map roles, members and conditions
+    * Permissions are not diretly assigned to member
+        * Permissions are represented by a Role
+        * Member gets permissions through role
+* A role can have multiple permissions
+* Can assign multiple roles to a Memeber
+* Members are also named PRINCIPAL or IDENTITY
+* Roles are assigned to users through IAM policy documents
+* Represented by a policy object
+    * Policy object has list of bindings
+    * A binding, binds a role to a list of members
+* Member type is identified by prefix:
+    * Example: user, serviceaccount, group or domain
+
+* gcloud:
+    * gcloud compute project-info describe - Describe current project
+    * gcloud auth login - Access the cloud platform with google user credentials
+    * gcloud auth revoke - Revoke access credentials for an account
+    * gcloud auth ist - List active accounts
+    * gcloud projects
+        * gcloud projects add-iam-policy-binding - Add IAM policy binding
+        * gcloud projects get-iam-policy - Get IAM policy for a project
+        * gcloud projects remove-iam-policy-binding - Remove IAM policy binding
+        * gcloud projects set-iam-policy - Set the IAM policy
+        * gcloud projects delete - Delete a project
+    * gcloud iam
+        * gloud iam roles describe - Describe an IAM role
+        * gloud iam roles create - Create an IAM role --project, --permissions, --stage
+        * gloud iam roles copy - Copy IAM Roles
