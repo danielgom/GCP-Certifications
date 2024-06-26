@@ -1253,3 +1253,155 @@ Roles in GCP are completely different from AWS roles
         * gloud iam roles describe - Describe an IAM role
         * gloud iam roles create - Create an IAM role --project, --permissions, --stage
         * gloud iam roles copy - Copy IAM Roles
+
+### Service Accounts
+
+* Scenario: An application on a VM needs access to cloud storage
+    * Don't want to use personal credentials to allow access
+* Use service accouts
+    * Identified by an email address (e.g. id-compute@developer.gserviceaccount.com)
+    * Does not have a password:
+        * Has a private/public RSA key-pairs
+        * Can't login via browser or cookies
+* Service account types:
+    * Default service account - Automatically created when some services are used
+        * Not recommended: Has Editor role by default
+    * User managed - User created
+        * Redommended: Provides fine grained access control
+    * Google-managed service accounts - Created and managed by Google
+        * Used by GCP to perform operations on user's behalf
+        * In general, we do not need to worry about them
+
+___Use Cases___
+
+VM <-> Cloud Storage
+
+1. Create a Service Account role with the right permissions
+2. Assing a service account role to VM instance
+
+Uses Google cloud-managed keys:
+
+* Key generation and use are automatically handled by IAM when we assign a service account to the instance
+* Automatically rotated
+* No need to store credentials in config files
+* Do not delete service accounts used by running instances:
+    * Applications running in those instances will lose access
+
+On prem <-> Cloud Storage
+
+* Cannot assing Service Account directly to an On Prem Acc
+1. Create a Service account with right permissions
+2. Create a Service  Account user managed key
+    * gcloud iam service-accounts keys create
+    * Download the service account key file
+        * Keep it secure (it can be used to impersonate service account)!
+3. Make the service account key file accessible to the application
+    * Set the environment variable GOOGLE_APPLICATION_CREDENTIALS
+        * export GOOGLE_APPLICATION_CREDENTIALS="/PATH_TO_KEY_FILE"
+4. Use google cloud client libraries
+    * Google Cloud client libraries use a library - Application Default Credentials (ADC)
+        * ADC uses the service account key file if env var GOOGLE_APPLICATION_CREDENTIALS exists
+
+On prem <-> Google Cloud APIs
+
+* Make calls from outside GCP to Google cloud APIs with short lived permissions
+    * Few hours or shorter
+    * Less risk compared to sharing service account keys
+* Credential Types:
+    * OAuth 2.0 access tokens
+    * OpenID connect ID tokens
+    * Self-signed JSON Web Tokens(JWTs)
+* Examples
+    *  When a memeber needs elevated permissions, he can assume the service account role (Create OAuth 2.0 access token for service account)
+    * OpenID connect ID tokens is recommended for service to service authentications
+        * A service in GCP needs to authenticate itself to a service in other cloud
+
+### ACL (Access control lists)
+
+* ACL: Define who has access to your buckets and objects, as well what level of access they have
+* How is this different from IAM
+    * IAM Permissions apply to all objects within a bucket
+    * ACLs can be used to customize specific accesses to different objects
+* User gets access if he is allowed by either IAM or ACL
+* Use IAM for common permissions to all objects in a bucket
+* User ACLs if you need to customize access to individual objects
+
+* Two types of access controls:
+    * Uniform (recommended) - Uniform bucket level access using IAM
+    * Fine-grained - use IAM and ACLs to control access
+        * Both bucket level and individual object level permissions
+* Use uniform access when all users have same level of access across all objects in a bucket
+* Fine grained access with ACLs can be used when you need to customize the access at an object level
+    * Give a user specific access to edit specific objects in a bucket
+
+### Cloud Storage - Signed URL
+
+If we want to allow a user limited time access to the objects we use Signed URLs
+
+* Users do not need Google accounts
+* Use Signed URL functionality
+    * A URL that gives permissions for limited time duration to perfomr specific actions
+* To create a Signed URL:
+    * Create a key (KEY) for the service account/user with the desired permissions
+    * Create Signed URL with the key:
+        * gsutil signurl -d 10m "key":gs//BUCKET_NAME/OBJECT_PATH
+
+### Cloud Storage - Static website
+
+1. Create a bucket with the same name as website name (Name of bucket should match DNS name of the website)
+    * Verify that the domain is owned by us
+2. Copy the files to the bucket
+    * Add index and error html files for better user experience
+3. Add memeber allUsers and grant Storage Object Viewer option
+    * Select Allow Public Access
+
+# ~~~~ GCP Databases ~~~~
+
+Basic concepts of Databases
+
+* Measuring how quicly we can recover from failure
+    * RPO (Recovery point objective): Maximum acceptable period of data loss
+    * RTO (Recovery time objective): Maximum acceptable downtime
+* Achieving minimum RTO and RPO is expensive
+
+* Databases performance is impacted:
+    * Vertically scale the database - increase CPU and memory
+    * Create a database cluster (Distribute the database) - Typically database clusters are expensive to setup
+    * Create read replicas - run read only applications against read replicas
+        * Reduces the load on master databases
+        * Can create read replicas in multiple regions
+        * Take snapshots from read replicas
+
+___Consistency___
+
+* Strong consistency - Synchronous replication to all replicas
+    * Will be slow if you have multiple replicas and standbys
+* Eventual consistency - Asynchronous replication. A little lag - few seconds - before the change is available in all replicas
+    * In the intermediate period, different replicas might return different values
+    * Used when scalability is more important that data integrity
+    * Examples: Social Media Posts - Facebook status messages, Twitter tweets, Linked in posts
+* Read-after-Write consistency - Inserts are immediately available
+    * However, updates would have enventual consistency
+
+___Cloud Firestore (Datastore) vs Cloud BigTable___
+
+* Cloud Datastore - Managed serverless NoSQL document database
+    * Provides ACID transactions, SQL-like queries, indexes
+        * Designed for transactional mobile and web applications
+    * Firestore (next version of datastore) adds:
+        * Strong consistency
+        * Mobile and Web client libraries
+    * Recommended for small to medium databases
+* Cloud BigTable - Managed, Scalable NoSQL wide column database
+    * Not serverless (need to create instances)
+    * Recommended for data size > 10 Terabytes to several petabytes
+    * Recommended for large analytical and operational workloads
+        * NOT recommended for transactional workloads (Does not support multi row transactions, supports ONLY single row transactions)
+
+### In memory databases
+
+* Retrieveing data from memory is much faster than retrieving data from disk
+* In memory databases like redis deliver microsecond latency by storing persistent data in memory
+* Recommended GCP managed service
+    * Memory store
+* Use cases: Caching, session management, gaming leader boards, geospatial applications
