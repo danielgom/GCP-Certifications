@@ -1571,3 +1571,214 @@ ___Remember___
 * NoSQL Databases
     * Transactional database for a few Terabytes of data - Cloud Datastore
     * Huge volumes of IOT or streaming analytics data - Cloud BigTable
+
+# ~~~~ GCP Pub/Sub ~~~~
+
+___Sync communication___
+
+* Application on the webserver make synchronous calls to the logging service
+* What if it goes down?
+    * Will applications go down?
+
+___Async communication___
+
+* Create a topic and have applications put log messages on the topic
+* Logging service picks them up for processing when ready
+* Advantages:
+    * Decoupling: Publisher (apps) don't care about whos listening
+    * Availability: Publisher(apps) up even if a subscriber is down
+    * Scalability: Scale consumer instances under high load
+    * Durability: Message is not lost even if subscriber is down
+
+### Pub/Sub
+
+Reliable, scalable, fully-managed asynchronous messaging service
+
+* Backbone for highly available and Highly scalable solutions
+    * Auto scale to process billions of messages per day
+    * Low cost (pay for use)
+* Usecases: Event ingestion and delivery for streaming analytics pipelines
+* Supports push and pull message deliveries (Like combination of AWS SNS + SQS)
+
+* Publisher - sender of a message
+    * Publisher send messages by making HTTPS requests to pubsub.googleapis.com
+* Subscriber - Receiver of the message
+    * Pull - Subscriber pulls messages when ready
+        * Subscriber makes HTTPS requests to pubsub.googleapis.com
+    * Push - Mesasges are sent to subrscribers
+        * Subscribers provide a web hook endpoint at the time of registration
+        * When a message is received on the topic, A HTTPS POST request is sent to the web hook
+        endpoints
+* Very flexible publishers and subscribers relationships
+    * Many to Many, One to One, Many to One, One to Many
+
+___Message processing___
+
+1. Topic is created
+2. Subscriptions are created
+    * Subscribers register to the topic
+    * Each subscription represents discrete pull of messages from a topic
+    * Multiple clients pull same subscription => messages split between clients
+    * Multiple clients create a subscription each => each client will get every message
+3. Publisher sends a message to the Topic
+4. Message individually delivered to each and every subscription
+    * Subscribers can receive messages either by
+        * Push: Pub/sub sends the message to subscriber
+        * Pull: Subscribers poll for messages
+5. Subscribers send acknowledgements
+6. Messages are removed from subscriptions message queue
+    * Pub/Sub ensures the message is retained per subscription until it is acknowledged
+
+
+# ~~~~ GCP VPC ~~~~
+
+ * In a corporate network or an on-premises data center:
+    * Can anyone on the internet see the data exchange between the application and the database?
+        * No
+    * Can anyone from the internet directly connect to the database?
+        * Typically no
+        * Need to connect to the corporate network and then access applications or databases
+* Corporate network provides a secure internal network protecting resources, data and communication from external users
+* How to create own private network in the cloud?
+    * Enter VPC
+
+* VPC is our own isolated network in GCP Cloud
+    * Network traffic within a VPC is isolated from all other cloud VPCs
+* Can control all the traffic coming in and going outside a VPC
+* Best Practice - Create all GCP resources within a VPC
+    * Secure resources from unauthorized access
+    * Enable secure communication between cloud resources
+* VPC is a global resource and contains subnets in one or more regions
+    * VCP is NOT tied to a region or a zone. VPC can be in any region or zone
+
+* By default, every project has a default VPC
+* Can create our own VPCs:
+    * OPTION 1: Auto mode VPC network
+        * Subnets are automatically created in each region
+        * Default VPC created automatically in the project uses auto mode
+    * OPTION 2: Custom mode VPC network
+        * No subnets are automatically created
+        * Have complete control over subnets and their IP ranges
+        * Recommended for production
+
+___Shared VPC___
+
+In an organization that has multiple proyects we want the resources from both projects to talk to each other
+
+* Shared VPC
+    * Created at organization or shared folder level (Access needed: Shared VPC Admin)
+    * Allow VPC network to be shared between projects in same organization
+    * Shared VPC contains one host project and multiple service projects
+        * Host project - Contains shared VPC network
+        * Service Projects - Attached to host projects
+* Helps to achieve separation of concerns
+    * Network administrators responsible for Host projects and Resource users use Service project
+
+___VPC Peering___
+
+Connect VPC networks accross different organizations
+
+* Enter VPC peering
+    * Networks in same project, different projects and across projects in different organizations can be peered
+    * All communication happens using internal IP addresses
+        * Highly efficient because all communication happens inside google network
+        * Highly secure because not accessible from internet
+        * No data transfer charges for data transfer between services
+    * Network administration is NOT changed
+        * Admin of one VPC do not get the role automatically in a peered network
+
+
+___Cloud VPN___
+
+* Connect on-premise network to the GCP network
+    * Implemented using IPSec VPN tunnel
+    * Traffic through internet (public)
+    * Traffic encrypted using Internet Key Exchange protocol
+* Two types of Cloud VPN solutions
+    * HA VPN (SLA of 99.99% service availability with two external IP addresses)
+        * Only dynamic routing (BGP) supported
+    * Classic VPN (SLA of 99.9% service availability, a single external IP address)
+        * Supports static routing (policy-based, route-based) and dynamic routing using BGP
+
+___Cloud Interconnect___
+
+* High speed physical connection between on-premise and VPC networks:
+    * Highly available and high throughput
+    * Two types of connections possible
+        * Dedicated interconnect - 10 Gbps or 100 Gpbs configurations
+        * Partner interconnect - 50 Mbps to 10Gbps configurations
+* Data exchange happens through private network
+    * Communicate using VPC networks internal IP addresses from on-premise network
+    * Reduces egress costs
+        * As public internet is NOT used
+* Supported Google APIs and services can be privately accessed from on-premise
+* Use only for high bandwidth needs
+    * For low bandwidth, Cloud VPN is recommended
+
+
+### Subnets
+
+* Different types of resources are created on cloud - databases, compute, etc
+    * Each type of resource has its own access needs
+    * Load balancers are accessible from internet (public resources)
+    * Databases or VM instances should NOT be accessible from the internet
+        * ONLY application within the network VPC should be able to access them (private resources)
+* How do we separate public resources from private resources inside a VPC?
+    * Create separate subnets
+* We can also create multiple subnets to distribute resources accross regions for high availability
+* Create different subnets fo public and private resources
+    * Resources in a public subnet CAN be accessed from internet
+    * Resources in a private subnet CANNOT be accesses from internet
+    * BUT resources in public subnet can talk to resources in private subnet because they are in the same VPC
+* Each subnet is create in a region
+* Example: VPC - demo-vpc => Subnets - region, us-central1, europe-west1 or us-west1
+* While creating a subnet
+    * Enable Private Google Access - Allows VMs to connect to Google APIs using private IPs
+    * Enable FlowLogs - To Troubleshoot any VPC related network issues
+
+### CIDR (Classless Inter-Domain Routing) blocks
+
+* Resources in a network use continous IP addresses to make routing easy:
+    * Example: Resources inside a specific network can use IP addresses from 62.208.0.0 to 62.208.0.15
+* How do we express a range of addresses that resources in a network can have?
+    * CIDR Block
+* A CIDR block consists of a starting IP address (69.208.0.0) and a range (/28)
+    * Example: CIDR block 69.208.0.0/28 represents addresses from 69.208.0.0 to 69.208.0.15 - a total of 16 addresses
+* Quick Tip: 69.208.0.0/28 indicates that the first 28 bits out of 32 are fixed
+    * Last 4 bits can change => 2 to the power 4 = 16 addresses
+* Examples:
+    * 69.208.0.0/26
+        * 2 to the power of 6 => 64 addresses
+    * 69.208.0.0/30
+        * 2 to the power of 2 => 4 addresses
+    * Difference betweeon 0.0.0.0/0 and 0.0.0.0/32
+        * 0.0.0.0/0 represents all IP Addresses (256) 0.0.0.0/32 represents just one address
+
+### Firewall rules
+
+* Configure firewall rules to control traffic going in our out the VPC network
+    * Stateful
+    * Each firewall rule has priority (0-65535) assigned to it
+    * 0 has the highest priority and 65535 has least priority
+    * Default implied rule with lowest priority 65535
+        * Allow all egress
+        * Deny all ingress
+        * Default rules can't be deleted
+        * You can override default rules by defining new rules with priority 0-65534
+    * Default VPC has 4 additional rules with priority 65534
+        * Allow incoming traffic from VM instances in the same network
+        * Allow incoming TCP traffic on port 22
+        * Allow incoming TCP traffic on port 3389
+        * Allow incoming ICMP from any source on the network
+* Ingress rules - Incoming traffic from outside to GCP targets
+    * Target (defines the destination): All instances or instances with TAG/SA
+    * Source (defines where the traffic is coming from): CIDR instances with TAG/SA
+* Egress rules - Outgoing traffic to destination from GCP targets
+    * Target (defines the source) - All instances or instances with TAG/SA
+    * Destination: CIDR Block
+* Along with each rule, we can also define
+    * Priority - Lower the number, higher the priority
+    * Action on match - Allow or deny traffic
+    * Protocol - ex TCP, UDP or ICMP
+    * Port - Port
+    * Enforcement status- Enable or Disable the rule
