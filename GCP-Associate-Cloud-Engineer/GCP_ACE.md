@@ -1782,3 +1782,216 @@ ___Cloud Interconnect___
     * Protocol - ex TCP, UDP or ICMP
     * Port - Port
     * Enforcement status- Enable or Disable the rule
+
+# ~~~~ GCP Cloud Operations ~~~~
+
+### Cloud Monitoring
+
+* To operate cloud applications effectively, you should know:
+    * Is my application healthy?
+    * Are the users experiencing any issues?
+    * Does my database has enough space?
+    * Are my servers running in an optimum capacity?
+
+* Cloud Monitoring - Tools to monitor your infrastructure
+    * Measures key aspects (Metrics)
+    * Create visualizations (Graphs and Dashboard)
+    * Configure Alerts (when metrics are NOT healthy)
+        * Define Alerting policies:
+            * Condition
+            * Notifications - Multiple channels
+            * Documentation
+
+* We can use cloud Monitoring to monitor one or more GCP projects and one or more AWS accounts
+* We can group all the information from multiple GCP projects or AWS accounts via Workspaces
+* Workspaces are needed to organize monitoring information
+    * A workspace allows to see monitoring information from multiple projects
+        1. Create a worskapce in a specific project (Host project)
+        2. Add other GCP projects (or AWS accounts) to the workspace
+
+* Default metrics monitored include:
+    * CPU utilization
+    * Disk traffic metrics
+    * Network traffic
+    * Uptime information
+    * Install Cloud Monitoring agent on the VM to get more disk, CPU, network and process metrics
+        * Collectd-based daemon
+        * Gathers metrics from VM and sends them to Cloud Monitoring
+
+
+### Cloud Logging
+
+* Real time log management and analysis tool
+* Allows to store, search, analyze and alert on massive volume of data
+* Exabyte scale, fully managed service
+    * No server provisioning, patching etc
+* Ingest log data from any source
+* Key features:
+    * Logs explorer - Search, sort & analyze using flexible queries
+    * Logs Dashboard - Rich visualization
+    * Logs Metrics - Capture metrics from logs (using queries/matching strings)
+    * Logs router - Route different log entries to different destinations
+
+* Most GCP managed services automatically send logs to Cloud Logging:
+    * GKE
+    * App Engine
+    * Cloud Run
+* Ingest logs from GCE VMs
+    * Install Logging agent (based on fluentd)
+    * Recommended - Run Logging Agent on all VM instances
+* Ingest logs from on-premises
+    * Recommended - Use the bingplane tool from blue medora
+    * Use the Cloud Logging API
+
+___Audit and Security logs___
+
+* Access Transparency log: Captures actions performed by GCP team on your content (NOT supported by all services)
+    * ONLY for organizations with Gold support level and above
+* Cloud Audit logs: Answers who did what, when and where
+    * Admin activity logs
+    * Data access logs
+    * System Event Audit logs
+    * Policy Denied Audit logs
+
+
+Feature | Admin activity logs | Data access logs | System Event Audit logs | Policy Denied Audit logs
+|-------| ------------------- | ---------------- | ----------------------- | ------------------------|
+| Logs for | API calls that modifty the configuration of resources | Reading configuration of resources | Google Cloud Administrative actions | When user or service account is denied access 
+| Default enabled | Yes | No | Yes | Yes
+| VM examples| VM creation, Patching, Change IAM permissions | Listing resources | On host maintenance instance preemption | Security policy violation logs
+| Cloud storage | Modify bucket or object | Modify/read bucket or object | |
+| Access Needed | Logging/logs viewer or project/viewer | Logging/Private logs viewer or project owner | Logging logs viewer or project viewer | Logging/logs viewer or Project vi
+
+___Controlling & Routing___
+
+* How do you manage your logs?
+    * Logs from various sources reaches Log Router
+    * Log Router checks against configured rules
+        * What to ingest? What to discard?
+        * Where to route?
+* Two types of logs buckets:
+    * _Required: Holds Admin Activity, System Events & Access Transparency logs (Retained for 400 days)
+        * Zero charge
+        * Cannot delete the bucket
+        * Cannot change retention period
+    * _Default: All other logs retained for 30 days
+        * Billed based on Cloud Logging pricing
+        * Cannot delete the bucket
+            * can disable the _Default log sink route to disable ingestion
+
+___Export___
+
+* Logs are ideally stored in Cloud Logging for limited period
+    * For long term retention (Compliance, Audit) logs can be exported to
+        * Cloud storage bucket
+        * Big query dataset
+        * Cloud pub/sub topic (base64 encoding log entries)
+* How to export logs?
+    * Create sinks to these destinations using Log Router
+        * Can create include or exclude filters to limit the logs
+
+### Cloud Trace
+
+* Distributed tracing system for GCP: Collect latency data from
+    * Supported Google Cloud services
+    * Instrumented applicatons (using tracing librearies) using Cloud Trace API
+* Find out
+    * How long does a services take to handle requests?
+    * What is the average latency of requests?
+    * Howare we doing overtime?
+* Supported for
+    * Compute Engine, GKE, App engine
+* Trace client libraries available for
+    * Go, Java, Node.js, PHP, Python & Ruby
+
+### Cloud Profiler
+
+* Identify bottlenecks in production
+* Cloud profiler - Statistical, low-overhead profiler
+* Continously gathers CPU and Memory usage from production systems
+* Connect profiling data with application source code
+* Two major components
+    * Profiling agent
+    * Profiler interface
+
+### Error reporting
+
+How to identify production problems in real-time
+
+* Real time exception monitoring
+    * Aggregates and displays errors reported from cloud services (using stack traces)
+    * Centralized error management console
+        * Identify & manage top errors or recent errors
+    * Use Firebase crash reporting for errors from androir & iOS client applications
+    * Supported for Go, Java, Node, PHP, Python and Ruby
+* Errors can be reported by
+    * Sending them to Cloud Logging OR
+    * By calling Error Reporting API
+* Error reporting can be accessed from desktop
+    * Also available in the Cloud console mobile app for iOS and Android
+
+# ~~~~ GCP Organizations and IAM ~~~~
+
+Resource Hierarchy in GCP
+
+* Well defined hierarchy
+    * Organization -> Folder -> Project -> Resources
+* Resourcea are created in projects
+* A folder can contain multiple projects
+* Organization can contain multiple projects
+
+___Recommendation for Enterprises___
+
+* Create separate projects for different environments
+    * Complete isolation between test and production environments
+* Create separate folders for each department
+    * Isolate production applications of one department from another
+    * We can create a shared folder for shared resources
+* One project per application per environment
+    * Let's consider two apps: A1 and A2
+    * Let's assume we need two environements: DEV and PROD
+    * Create Four projects, A1-DEV, A1-PROD, A2-DEV, A2-PROD:
+        * Two Folders: A1, A2
+        * Isolets environments from each other
+        * DEV changes will NOT break PROD
+        * Grant all developers complete access (create, delete, deploy) to DEV projects
+        * Provide production access to operations team only
+
+### Billing accounts
+
+* Billing account is mandatory for creating resources in a project
+    * Billing Account contains the payment details
+    * Every project with active resources should be associates with a Billing Account
+* Billing account can be associated with one or more projects
+* Can have multiple billing accounts in the organization
+* Create billing acccounts representing the organization structure
+    * Startups can have one billing account
+    * Large enterprises can have a separate billing account for each department
+* Two types
+    * Self serve: Billed directly to Credit Card or Bank Account
+    * Invoiced: Generate Invoices (Used by large enterprises)
+* Setup a Cloud billing budget to avoid surprises
+    * Configure alerts
+    * Default alert thresholds set at 50%, 90% and 100%
+        * Send alerts to Pub Sub (Optional)
+        * Billing admins and Billing Account users are alerted by e-mail
+* Billing Data can be exported (on a schedule)
+    * Big query (if we want to query or visualize)
+    * Cloud storage (for history/archiving)
+
+### IAM Best practices
+
+* Principle of least privilege - Give least possible privilege needed for a role
+    * Basic Roles are NOT recommended
+        * Prefer predefined roles when possible
+    * Use Service accounts with minimum privileges
+        * Use different service accounts for different apps/purposes
+* Separation of duties - Involve atleast 2 people in sensitive tasks
+    * Example: Have separate deployer and traffic migrator roles
+        * AppEngine provides AppEngine deployer and App Engine Service Admin roles
+            * Deployed can deploy new version but cannot shift traffic
+            * Service Admin can shift traffic but cannot deploy new version
+* Constant monitoring: Review Cloud Audit Logs to audit changes to IAM policies and access to Service account keys
+    * Archive Cloud Audit logs in Cloud Storage buckets for long term retention
+* Use groups when possible
+    * Makes it easy to manage users and permissions
