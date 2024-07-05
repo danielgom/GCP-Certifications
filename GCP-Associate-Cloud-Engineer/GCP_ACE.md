@@ -1715,7 +1715,6 @@ ___Cloud Interconnect___
 * Use only for high bandwidth needs
     * For low bandwidth, Cloud VPN is recommended
 
-
 ### Subnets
 
 * Different types of resources are created on cloud - databases, compute, etc
@@ -1995,3 +1994,161 @@ ___Recommendation for Enterprises___
     * Archive Cloud Audit logs in Cloud Storage buckets for long term retention
 * Use groups when possible
     * Makes it easy to manage users and permissions
+
+### User Identity management
+
+* Email used to create free trial account - "Super Admin"
+    * Access to everything in the GCP organizaiton, folders and projects
+    * Manage access to other users using their Gmail accounts
+* Not recommended for enterprises
+* Option 1: Enterprise is using Google Workspace
+    * Use Google workspace to manage users (Groups, etc)
+    * Link Google Cloud Organization with Google Workspace
+* Option 2: Enterprise uses an Identity provider of its own
+    * Federate Google Cloud with Identity Provider
+
+___Corporate Directory Federation___
+
+* Federate Cloud Identity or Google Workspace with External Identity Provider (idP) such as Active Directory or Azure Active Directory
+* Enable Single Sign On
+    1. Users are redirected to an external IdP to authenticate
+    2. When users are authenticated, SAML assertion is sent to Google Sign-In
+* Examples
+    * Federate Active Directory with Cloud Identity by using Google Cloud Directory Sync (GCDS) and Active Directory Federation Services (AD FS)
+    * Federating Azure AD with cloud Identity
+
+### IAM Members/Identities
+
+* Google Account - Represents a person (email address)
+* Service account - Represents and application account (Not person)
+* Google group - Collection - Google & Service Accounts
+    * Has unique email address
+    * Helps to apply access policy to a group
+* Google Workspace domain: Google Workspace (formely G suite) provides collaboration services for enterprises
+    * Tools like Gmail, Calendar, Meet, Chat, Drive, Docs etc are included
+    * If enterprise is using Google Workspace, we can manage permissions using Google Workspace Domain
+* Cloud Identity domain - Cloud Identity is an Identity as a Service (IDaaS) solution that centrally manages users and groups
+    * We can use IAM to manage access to resources for each Cloud Identity account
+
+### Organization policy service
+
+Enable centralized contrainsts on all resources created in an Organization
+
+* Configure Organization Policy
+    * Example: Disable creation of Service Accounts
+    * Example: Allow/Deny creation of resources in specific regions
+* Needs Organization Policy Administrator Role
+* IAM focuses on Who
+    * Who can take specific actions on resources?
+* Organization policy focuses on What
+    * What can be done on specific resources?
+
+### Resource Hierarchy & IAM Policy
+
+* IAM Policy can be set at any level of hierarchy
+* Resources inherit the policies of all parents
+* The effective policy for a resource is the union of the policy on that resource and its parents
+* Policy inheritance is transitive
+    * Organization policies are applied at resource level
+* Cannot restrict policy at a lower level if permission is given at an higher level
+* Organization -- Folder -- Project -- Resource
+
+### Exploring Roles 
+
+___Organization, Billing and Project roles___
+
+* Organization administrator
+    * Define resource Hierarchy
+    * Define Access management policies
+    * Manage other users and roles
+* Billing Account creator - Create Billing Accounts
+* Billing account administrator - Manage Billing Accounts (payment instruments, billing exports, ling and unlink projects, manage roles on billing account)
+    * Cannot create billing account
+* Billing Account user - Associate projects with billing accounts
+    * Typically used in combination with Project creator
+    * These two roles allow user to create new project and link with billing account
+* Billing Account viewer - See All billing account details
+
+___Compute Engine Roles___
+
+* Compute Engine Admin - Complete control of compute - instances, images, Load balancers, Network, etc
+* Compute Instance Admin - Create, modify and delete virtual machine instances and disks
+* Compute Engine Network Admin - Complete access to networking resources and READ ONLY access to firewall rules and SSL certificates
+* Compute Engine Security Admin - Complete access to firewall rules and SSL certificates
+* Compute Engine Storage Admin - Complete access to disks, images, snapshots
+* Compute Engine Viewer - Read ONLY access to everything in compute
+* Compute OS Admin Login - Log in to a Compute Engine Instance as an administrator user
+* Compute OS Login - Log in to a Compute Engine Instance as a standard user
+
+___App Engine Roles___
+
+C - Create
+R - Read
+U - Update
+D - Delete
+
+* App Engine Creator - application(C,D) Responsible for creation/deletion an application
+* App Engine Admin - applications(R,U) services/instances/versions(CRUD), operations
+* App Engine Viewer - applications/services/instances/versions R, operations
+* App Engine Code Viewer - appengine.versions.getFileContents (Only role that can view code)
+* App Engine Deployer -  versions(CRD), applications/services/versions(R)
+    * Cannot change traffic between versions
+    * Can deploy app versions (With Service Account User role)
+* App Engine Service Admin - versions(RUD), applications(R), services/instances(CRUD)
+    * Can change traffic between versions
+    * Cannot deploy app versions
+
+* App Engine Roles Do not allow to
+    * View and Download application logs
+    * View Monitoring charts in the Cloud Console
+    * Enable and Disable billing
+    * Access configuration or data stored in other services
+
+___GKE IAM Roles___
+
+* Kubernetes Engine Admin - Complete access to Clusters and Kubernetes API Objects
+* Kubernetes Engine Cluster Admin - Provides access to management of clusters, Cannot access Kubernetes API Objects
+* Kubernetes Engine Developer - Manage Kubernetes API objects, READ cluster info
+* Kubernetes Engine Viewer - get/list cluster and kubernetes api objects
+
+___Cloud Storage Roles___
+
+* Storage Admin - Complete access to buckets and objects
+* Storage Object Admin - Complet access to Objects only
+* Storage Object Creator - Can create objects
+* Storage Object Viewer - Can get and list objects
+    * Container Registry stores container images in Cloud Storage buckets
+        * Controll access to images in Container Registry using Cloud Storage permissions
+
+___Big Query roles___
+
+* BigQuery Admin - Complete access to big query
+* BigQuery Data Owner - Access to datasets, models, routines, tables, no access to jobs (Where you run the queries)
+* BigQuery Data Editor - Fewer access to datasets,models, routines, tables, no access to jobs
+* BigQuery Data Viewer - get/list to datasets, models, routines, tables
+* BigQuery Job user - Can create jobs, run queries
+* BigQuery User - BigQuery Data viewer + get/list jobs
+
+* To see data we need BigQuery User or BigQuery Data Viewer
+    * Cannot see data with BigQuery Job User role
+
+
+___Logging IAM Roles and Service Account Roles___
+
+* Logs viewer - Read all logs except Access Transparency logs and Data access audit logs
+* Private Logs viewer - Logs viewer + Read Access Transparency logs
+* Loggin Admin - All permissions related to logging
+* Security Admin - Get and set any IAM policy
+* Security Viewer - List all resources & IAM policies
+* Organization Role Admin - Admin all custom roles in the organization and projects below it
+* Organization Role Viewer - Read all custom roles in the organization and the projects below it
+* Role Admin - Provides access to all custom roles in the project
+* Role Viewer - Provides read access to all custom roles in the project
+* Browser - Read access to browse the hierarchy for a project, including the folder, organization and IAM policy
+
+* Service accounts
+    * Service Account Admin - Create and manage Service Accounts
+    * Service Account User - Run operations as the service Account
+    * Service Account Token Creator - Impersonate service accounts (Create OAuth2 access tokens, sign blobs, JWTs, etc)
+    * Service Account Key Admin - Create and manage (and rotate) service account keys
+
