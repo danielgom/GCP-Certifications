@@ -383,6 +383,7 @@ ___Choosing load balancer___
     * Regional, internal, HTTP or HTTPS
     * Proxy pass
     * Destination - HTTP 80,8080 ports or HTTPS 443 Port
+    * SSL/TLS termination - yes
 * SSL proxy
     * Global, External, TCP with SSL offload
     * Proxy pass
@@ -391,6 +392,7 @@ ___Choosing load balancer___
     * Global, External, TCP without SSL offload
     * Proxy pass
     * A big list of destinations
+    * SSL/TLS termination - no
 * Eternal network TCP/UDP
     * Regional,External TCP or UDP
     * Pass-through
@@ -467,7 +469,7 @@ ___Environments Standard vs Flexible___
 
 Feature| Standard    | Flexible |
 |------| -------- | ------- |
-| Pricing  | Instance hours    | vCPU, Memory & Persisten Disks
+| Pricing  | Instance hours    | vCPU, Memory & Persistent Disks
 | Scaling | Manual, basic, automatic     | Manual, automatic
 | Scaling to zero    | Yes    | No, Minimum one instance
 | Instance startup  | Seconds    | Minutes
@@ -812,7 +814,7 @@ ___Deploying using gcloud___
 * gcloud functions deploy
     * --docker-registry: registry to store the function's docker image
         * Default -container-registry
-        * Alternatyive -artifact-registry
+        * Alternative -artifact-registry
     * --docker-repository: repository to store the function's Dockeri mages
     * --gen2: use 2nd Gen
     * --runtime: Nodejs, python, java...
@@ -839,7 +841,7 @@ ___Deploying using gcloud___
     * HTTP POST/GET/DELETE/PUT/OPTIONS 
     * Firebase
     * Cloud Firestore
-    * Stack driver logging
+    * Stackdriver logging
 
 * No server management
 * Automatically spin up and back down in response to events, scalling horizontally
@@ -854,6 +856,7 @@ Container to production in seconds
 * Fully managed serverless platform for containerized applications
     * Zero infrastructure management
     * Pay-per-use
+    * Can split traffic for multiple versions/revisions
 * Fully integrated end-to-end developer experience:
     * No limitations in languages, binaries and depdendencies
     * Easily portable because of container based architecture
@@ -1267,7 +1270,7 @@ Roles in GCP are completely different from AWS roles
     * Default service account - Automatically created when some services are used
         * Not recommended: Has Editor role by default
     * User managed - User created
-        * Redommended: Provides fine grained access control
+        * Recommended: Provides fine grained access control
     * Google-managed service accounts - Created and managed by Google
         * Used by GCP to perform operations on user's behalf
         * In general, we do not need to worry about them
@@ -1472,6 +1475,7 @@ ___Import and Export___
     * Other option is to use flow to automate export
     * No gcloud export option
 * To import and export use Cloud Data Flow
+* The recommended maximum CPU utilization for single-region Spanner instances is 65%
 
 ### Cloud Datastore and Firestore
 
@@ -1691,6 +1695,7 @@ Connect VPC networks accross different organizations
 ___Cloud VPN___
 
 * Connect on-premise network to the GCP network
+    * Supports private IPs routing
     * Implemented using IPSec VPN tunnel
     * Traffic through internet (public)
     * Traffic encrypted using Internet Key Exchange protocol
@@ -2062,7 +2067,7 @@ ___Organization, Billing and Project roles___
     * Define Access management policies
     * Manage other users and roles
 * Billing Account creator - Create Billing Accounts
-* Billing account administrator - Manage Billing Accounts (payment instruments, billing exports, ling and unlink projects, manage roles on billing account)
+* Billing account administrator - Manage Billing Accounts (payment instruments, billing exports, link and unlink projects, manage roles on billing account)
     * Cannot create billing account
 * Billing Account user - Associate projects with billing accounts
     * Typically used in combination with Project creator
@@ -2127,7 +2132,7 @@ ___Big Query roles___
 * BigQuery Data Editor - Fewer access to datasets,models, routines, tables, no access to jobs
 * BigQuery Data Viewer - get/list to datasets, models, routines, tables
 * BigQuery Job user - Can create jobs, run queries
-* BigQuery User - BigQuery Data viewer + get/list jobs
+* BigQuery User - BigQuery Data viewer + get/list jobs, can also run some queries and create datasets
 
 * To see data we need BigQuery User or BigQuery Data Viewer
     * Cannot see data with BigQuery Job User role
@@ -2136,7 +2141,7 @@ ___Big Query roles___
 ___Logging IAM Roles and Service Account Roles___
 
 * Logs viewer - Read all logs except Access Transparency logs and Data access audit logs
-* Private Logs viewer - Logs viewer + Read Access Transparency logs
+* Private Log viewer - Logs viewer + Read Access Transparency logs
 * Loggin Admin - All permissions related to logging
 * Security Admin - Get and set any IAM policy
 * Security Viewer - List all resources & IAM policies
@@ -2197,6 +2202,8 @@ ___Terminology___
     * Can be defined using
         * Python (preferred)
         * JinJa2
+    * Templates are stored in Cloud Source Repositories as a best practice
+        * Designed for hosting and versioning source code
 * Deployment - Collection of resources that are deployed and managed together
 * Manifests - Read-only object containing original deployment configuration (included imported templates)
     * Generated by Deployment Manager
@@ -2265,3 +2272,50 @@ Cloud managed services for Spark and Hadoop
     * Can export cluster configuration but not Data
 * BigQuery (Alternative) - When we run SQL queries on petabytes
     * Go for Cloud Dataproc when we need more than queries (Batch Processing, Machine Learning, AI Workloads)
+
+### Secret Manager
+
+Store API keys, passwords, certificates, and other sensitive data
+
+* First-class versioning
+    * Secret data is immutable and most operations take place on secret versions. With Secret Manager, you can pin a secret to specific versions like "42" or floating aliases like "latest."
+    * Data is encrypted in transit with TLS and at rest with AES-256-bit encryption keys.
+
+### Transfer Appliance
+
+Transfer Appliance is the most cost-effective solution for data migration of large size. Obtaining a Transfer Appliance, copying the data to it, and shipping it to Google allows for a faster and more efficient migration. The Transfer Appliance is a physical device that can securely transfer large amounts of data offline
+
+### Exam question information
+
+___Connect Compute Engine VM to GKE internal in different VPC___
+
+* Creating a LoadBalancer Service type using the application's Pods as the backend and adding the annotation "cloud.google.com/load-balancer-type: Internal" ensures that the load balancer is only accessible internally within the VPC. Peering the two VPCs together allows the Compute Engine instance in one VPC to access the application in the other VPC.
+
+___Create GKE Resources from Deployment manager file___
+
+* Adding the cluster's API as a new Type Provider in Deployment Manager allows you to directly use Kubernetes API resources within your Deployment Manager templates.
+
+___When users get access to certain resources?___
+
+*  Admin Activity logs show when users were given roles to a certain resource
+
+___Google Kubernetes Engine (GKE). You want to keep costs under control. What is the best way to do that?___
+
+* Configure Autopilot in GKE to monitor node utilization and eliminate idle nodes.
+
+___How to move projects from a different org to your org. How can you accomplish this with minimal effort?___
+
+1. Move the project to the other organization using the projects.move method.
+2. Update the billing account of the project to that of your organization.
+
+___The app will be deployed in 3 separate environments namely development, test, and production. How can you deploy and manage these environments to ensure that they are consistent?___
+
+* Create one deployment template that will work for all environments using the Cloud Foundation Toolkit (CFT), and deploy with Terraform.
+
+___Your team is trying to migrate a business-critical application to Google Kubernetes Engine. What steps would you recommend to optimize the cluster for reliability?___
+
+*  Establish a GKE Autopilot cluster and choose to enroll the cluster in the stable release channel.
+
+___Your webapp needs a custom utility to build and you need to make sure it is in the default execution path and persists across sessions. Where should you store it?___
+
+* ~/bin
