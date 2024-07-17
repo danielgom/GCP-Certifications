@@ -2175,7 +2175,7 @@ ___Logging IAM Roles and Service Account Roles___
 
 # ~~~~ GCP Important Services ~~~~
 
-### Deployment Manager
+### Deployment Manager / Cloud Foundation Toolkit
 
 Centralized place where we can deploy multiple services at once with a configuration file, YAML file
 
@@ -2280,6 +2280,23 @@ Store API keys, passwords, certificates, and other sensitive data
 * First-class versioning
     * Secret data is immutable and most operations take place on secret versions. With Secret Manager, you can pin a secret to specific versions like "42" or floating aliases like "latest."
     * Data is encrypted in transit with TLS and at rest with AES-256-bit encryption keys.
+
+# ~~~~ GCP Exam Findings ~~~~
+
+### Transfer Appliance
+
+Is a high-capacity storage device that enables you to transfer and securely ship your data to a Google upload facility, where we upload your data to Cloud Storage
+
+The following features are provided by Transfer Appliance
+
+* Tamper resistant: Bad actors cannot easily open Transfer Appliance's physical case. We also apply tamper-evident tags to the shipping case, so that you can visually inspect each appliance's integrity prior to opening the package.
+* Ruggedized: Transfer Appliance's shipping container is ruggedized, ensuring your data arrives safely.
+* Trusted Platform Module (TPM) chip: We validate the TPM's Platform Configuration Registers to ensure that the immutable root filesystem and software components haven't been tampered with.
+* Hardware attestation: We use a remote attestation process to validate the appliance before you can connect it to your device and copy data to it. If anything is amiss, we work with you to quickly send you a new appliance.
+* AES 256 encryption: Your data is encrypted with industry-standard encryption to keep it safe.
+* Customer-managed encryption keys: We use encryption keys that you manage using Cloud Key Management Service (Cloud KMS), enabling you to control and secure your data prior to shipping an appliance back to us.
+* NIST 800-88 compliant data erasure: We securely erase your data from Transfer Appliance after uploading your data to Cloud Storage. You can request a wipe certificate to verify that we've wiped your data.
+
 
 ### Transfer Appliance
 
