@@ -107,3 +107,7 @@ ___Unstructured Data___
     * Size is unknown
     * No much heavy processing - take millisecond to seconds to process data
     * Example: Stock data processing
+
+### GCP Container registry
+
+* Artifact registry is a redefined version of the GCP container registry

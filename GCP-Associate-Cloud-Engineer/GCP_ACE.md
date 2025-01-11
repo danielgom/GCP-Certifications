@@ -852,7 +852,7 @@ ___Deploying using gcloud___
 
 Container to production in seconds
 
-* Built on top of an open standar - Knative
+* Built on top of an open standard - Knative
 * Fully managed serverless platform for containerized applications
     * Zero infrastructure management
     * Pay-per-use
@@ -1203,6 +1203,8 @@ ___Gsutil___
 1. Choose a Role with right permissions (Ex: Storage Object Admin)
 2. Create a policy binding memeber (anyone) with role (permissions)
 
+We cannot assing a permission directly, it must be through a role
+
 IAM in AWS is very different from GCP (NEVER RELATE EACHOTHER)
 
 ### IAM Roles
@@ -1274,6 +1276,8 @@ Roles in GCP are completely different from AWS roles
     * Google-managed service accounts - Created and managed by Google
         * Used by GCP to perform operations on user's behalf
         * In general, we do not need to worry about them
+
+* Cannot create more than 100 service accounts per project
 
 ___Use Cases___
 
