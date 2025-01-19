@@ -111,3 +111,387 @@ ___Unstructured Data___
 ### GCP Container registry
 
 * Artifact registry is a redefined version of the GCP container registry
+
+# ~~~~ GCP Cloud Storage ~~~~
+
+Similar to AWS S3 (Buckets)
+
+* Most popular, very flexible & inexpensive storage service
+    * Serverless: Autoscaling and infinite scale
+* Storage large objects using a key-value approach:
+    * Treats entire object as a unit (Partial updates not allowed)
+        * Recommended when you operate on entire object most of the time
+        * Access control at Object level
+    * Also called Object storage
+* Provides REST API to access and modify objects
+    * Also provides CLI (gsutil) & Client Libraries (C++, C#, Java, Node.js, PHP, Python & Ruby)
+* Store all file types - text, binary, backup & archives
+    * Media files and archives, application packages and logs
+    * Backups of databases or storage devices
+    * Staging data during on-premise to cloud database migration
+* Data is geo - redundant
+    * Multi regional, Dual-region storage
+
+___Objects and Buckets___
+
+* Objects are stored in buckets
+    * Bucket names are gobally unique
+    * Bucket names are used as part of object URLs => can contain Only lower case letters, numbers, hyphens, underscores and periods
+    * 3-63 characters max, Can't start with goog prefix or should not contain google
+    * Unlimited objects in a bucket
+    * Each bucket is associated with a project
+* Each object is identified by a unique key
+    * Key is unique in a bucket
+* Max object size is 5 TB
+    * But can store unlimited number of such objects
+
+___Storage Classes___
+
+* Different kinds of data can be stored in Cloud Storage
+    * Media files and archives
+    * Application packages and logs
+    * Backups of databases or storage devices
+    * Long term archives
+* Huge variations in access patterns
+* Storage classes help to optimize costs based on access needs
+    * Designed for durability 99.99999999999999%
+* Low latency
+* Unlimited storage
+    * Auto scaling
+    * No minimum object size
+* Same APIs across storage classes
+* Commited SLA is 99.95% for multi region and 99.9% for single region for Standard, Nearline and Coldline storage classes
+    * No commited SLA for archive storage
+
+
+StorageClass| Name    | Min Storage Duration | Availability | Use case
+|------| ----------- | -------- | --- | ------------------- |
+| Standard  | STANDARD | None | > 99.99% in multi region and dual region, 99.99% in regions | Frequently used data for a short period of time
+| Nearline storage | NEARLINE | 30 Days | 99.95% in multi region and dual region, 99.9% in regions | Read or modify data once a month on average
+| Coldline storage | COLDLINE    | 90 Days | 99.95% in multi region and dual region, 99.9% in regions | Read or modify at most once a quarter
+| Archive storage | ARCHIVE    | 365 Days | 99.95% in multi region and dual region, 99.9% in regions | Less than once a year
+
+
+___Uploading and Downloading Objects___
+
+Option | Recommended for Scenarios |
+|------| ----------- |
+| Simple Upload  | Small files (that can be re uploaded in case of failuers) + No object metadata | 
+| Multipart Upload | Small files (that can be re uploaded in case of failuers) + object metadata |
+| Resumable upload | Larger files. RECOMMENDED for most use cases (even for smal files - cost one additional HTTP request) |
+| Streaming transfers | Upload an object of unknown size |
+| Parallel composite uploads | File divided up to 32 chunks and uploaded in parallel, Significantly faster if network and disk speed are not limiting factors |
+| Simple Download | Downloading objects to a destination |
+| Streaming Download | Downloading data to a process |
+| Sliced object Download | Slice and download larger objects |
+
+___Object versioning___
+
+Since objects are immutable, these are commonly versioned (Disabled by default)
+
+* Prevents accidental deletion & provides history
+    * Enabled at bucket level
+        * Can be turned on/off at any time
+* Live version is the latest version
+    * If we delete live object, becomes noncurrent object version
+    * If delete noncurrent object version, it is deleted
+* Older versions are uniquely identified by (object key + a generation number)
+* Reduce costs by deleteing older (noncurrent) versions
+* If no version provided, we will always get the latest version of the object
+
+___Object lifecycle management___
+
+* Files are frequently accessed when they are created
+    * Generally usage reduces with time
+* Identify objects using conditions based on:
+    * Age, CreatedBefore, IsLive, MatchesStorageClass, NumberOfNewerVersions, etc...
+    * Set multiple conditions: all conditions must be satisfied for action to happen
+* Two kinds of actions
+    * SetStorageClass actions (change from one storage class to another)
+        * Example: Standard to Nearline
+    * Deletion actions (delete objects)
+
+___Encryption___
+
+* Cloud storage always encrypts data on the server side (encrypted at rest)
+* Configure server-side encryption: Encryption performed by cloud storage:
+    * Google-managed encryption key: Default (No configuration required)
+        * Fully managed
+    * Customer-managed encryption keys: Created using Cloud Key Management Service (KMS) by customer in KMS
+        * Keys should be managed by the customer (rotation)
+        * Cloud storage service account should have access to keys in KMS for encrypting and decrypting using the Customer-Managed encryption key
+        * If key is deleted or destroyed, object can no longer be acessed.
+    * Cusomer-supplied encryption-key:
+        * Generated by the customer, needs to be supplied each time we want to read the object
+* Client side encryption (OPTIONAL): Encryption performed by customer before upload
+    * GCP does NOT know about the keys used
+
+
+___Gsutil OLD___
+
+* gsutil is the CLI for Cloud Storage not gcloud
+    * Cloud Storage (gsutil)
+        * gsutil mb - Create cloud storage
+        * gsutil ls -a - List current and non-current object version
+        * gsutil cp - Copy objects
+        * gsutil mv - Rename/Move Objects
+        * gsutil rewrite - Change storage class for objects
+        * gsutil cp - Upload and Download objects
+            * gsutil cp LOCAL_LOCATION gslocation Upload
+            * gsutil cp gslocation LOCAL_LOCATION Download
+        * gsutil versioning set on/off
+        * gsutil uniformbucketlevelaccess set on/off
+        * gsutil acl ch (Set access permissions)
+        * gsutil iam ch (Set up IAM role)
+        * gsutil signurl -d 10m (Set temporary signed URL for temporary access)
+
+___Gcloud storage CLI NEW___
+
+* gcloud storage is the new CLI for Clouse storage (gcloud storage)
+    * gcloud storage buckets list - List current and non-current object versions
+    * gcloud storage create - Create a bucket
+    * gcloud storage cp - Copy objects
+    * gcloud storage rm - Remove one or multiple objects
+    * gcloud storage mv - Rename/Move objects
+
+___Storage Location___
+
+Region
+
+* Lowest latency within a single region
+* Replicated data across multiple zone in single region
+
+Dual-Region
+
+* High availability and low latency across 2 regions (Paired region)
+* Auto-failover
+
+Multi-Region
+
+* Highest availability across regions continent area - US, EU, Asia
+* Autofailover
+
+___Controlling Access___
+
+* Who can do what on Google Cloud storage at what level
+* Apply at bucket level
+    * Uniform level access (It also uses IAM)
+        * No object level permission
+        * Apply uniformly at all objects inside the bucket
+    * Fine grained permission (In addition to bucket level permissions IAM)
+        * Access Control List - ACL for each object separately
+* Apply at Project level
+    * IAM (Mostly for users and Service Accounts)
+    * Different  predefined role
+        * Storage Admin
+        * Storage Object Admin
+        * Storage Object Creator
+        * Storage Object Viewer
+* Assing bucket level role
+    * Select bucket & assign role
+    * To user
+    * To other GCP services or products
+
+### ACL (Access control lists, Kind of old)
+
+* ACL: Define who has access to your buckets and objects, as well what level of access they have
+* How is this different from IAM
+    * IAM Permissions apply to all objects within a bucket
+    * ACLs can be used to customize specific accesses to different objects
+* User gets access if he is allowed by either IAM or ACL
+* Use IAM for common permissions to all objects in a bucket
+* User ACLs if you need to customize access to individual objects
+
+* Two types of access controls:
+    * Uniform (recommended) - Uniform bucket level access using IAM
+    * Fine-grained - use IAM and ACLs to control access
+        * Both bucket level and individual object level permissions
+* Use uniform access when all users have same level of access across all objects in a bucket
+* Fine grained access with ACLs can be used when you need to customize the access at an object level
+    * Give a user specific access to edit specific objects in a bucket
+
+### Cloud Storage - Signed URL
+
+If we want to allow a user limited time access to the objects we use Signed URLs
+
+* Users do not need Google accounts
+* Max period the URL can be valid is 7 days
+* Use Signed URL functionality
+    * A URL that gives permissions for limited time duration to perfomr specific actions
+* To create a Signed URL:
+    * Create a key (KEY) for the service account/user with the desired permissions
+    * Create Signed URL with the key:
+        * gsutil signurl -d 10m "key":gs//BUCKET_NAME/OBJECT_PATH
+
+### GCP - Storage Transfer Service
+
+* From On-Premises to Google Cloud Storage (GCS)
+    * gsutil -- gcloud storage
+    * Online mode of transfer -- Online
+    * Transfer service for on-premises data
+        * Quickly and securely move data from private data centers into Google cloud storage
+            * Two step process
+                1. Install agent
+                2. Create transfer job
+    * Transfer appliance (Google request) -- Offline
+        * Physical device which securely transfer large amounts of data to Google cloud platform
+        * Used when data exceeds 20TB or would take more than a week to upload
+
+* Transfer service cloud data
+    * From one bucket to another bucket inside same GCP
+    * From other public cloud Amazon S3, Azure container to GCS
+    * Create Transfer job
+    * One time run or recurring
+
+### GCP - Block Storage
+
+* Hardisks attached to the computers (VMs) -- High throughput, Low latency
+* Typically, ONE block storage device can be connected to ONE virtual server
+    * We can attach read only block devices with multiple virtual servers and certain cloud providers are exploring multi-writer disks as well
+* Can connect to multiple different block storage devices to one virtual server
+* Used as:
+    * Direct-attached storage DAS - Similar to a hard disk SSD
+        * Physically attached to the VM
+        * Very high performance
+        * Costlier than persistent disks
+        * Can only attach to a single VM, cannot re attach to other VM
+        * If VM is destroyed, disk is destroyed
+        * Cannot take snapshots
+    * Storage Area Network SAN - High-speed network connecting a pool of storage devices
+
+* Types
+    * Persisent disks: Network Block Storage
+        * Zonal: Data replicated in one zone
+        * Regional: Data replicated in multiple zone
+    * Local SSDs: Local Block Storage
+
+___Local SSDs___
+
+Are physically attached to the host of the VM instances:
+
+* Provide very high IOPS and very low latency
+* Ephemeral storage - Temporary data (Data persists as long as the instance is running)
+    * Enable live migration for data to survive maintenance events
+* Data automatically encrypted
+    * Cannot configure encryption keys
+* Lifecycle tied to VM instance
+* Hold temporary data
+* ONLY some machine types support local SSDs
+* Supports SCSI and NVMe interfaces
+* Choose NVMe-enabled and multi-queue SCSI images for best performance
+* Larger Local SSDs (more storage), More vCPUs(attached to the VM) => Even better performance
+
+
+___Persistent Disks___
+
+* Network block storage attached to the VM instance
+* Provisioned capacity
+* Supports snapshots
+* Flexible:
+    * Increase size when need it - when attached to VM instance
+    * Performance scales with size:
+        * For higher performance, resize or add more PDs
+* Independent lifecycle from VM instance:
+    * Attach or detach from one VM instance to another
+* Options: Regional/Zonal:
+    * Zonal PDs replicated in a single zone. Regional PDs replicated in 2 zones in same region
+    * Typically Regional PDs are 2x the cost of Zonal PDs
+
+Networking storage
+
+* More durable - Almost permanent storage
+* Lifecycle NOT tied to VM instance
+* Permanent storage
+* No VM needed
+
+### GCP - File Storage
+
+* More expensive than cloud storage
+* Fully managed, High performance filestore
+* Network attached storage (NAS), for compute engine and GKE
+* Supports HDD and SSD
+* Media workflows need huge shared storage for supporting processes like video editing
+* Enterprise users need a quick way to share files in a secure and organized way
+* These files shares are shared by several virtual servers
+* Performance scales with capacity
+
+* Types
+    * Filestore: High performance file storage
+    * Supports NFSv3 Protocol
+    * Provisioned capacity
+
+* Suitable for high performance workloads
+    * Up to 320 TB with throughput of 16GB/s and 480k IOPS
+* Supports HDD (General purpose) and SDD (Performance-critial workloads)
+* Use cases
+    * File share
+    * Media workflows
+    * Content management
+
+___Storage, which storage to use when___
+
+* Cloud storage (BlOB)
+    * Unstructured data storage
+    * Video stream, images
+    * Staging environment
+    * Compliance
+    * Backup
+    * Data lake
+* Persistent Disk (Block storage)
+    * Attack disk with VM and Containers
+    * Share read-only disk with multiple VM
+    * Database storage
+* Local Disk (Block storage, High performance)
+    * Temporary High performance attach disk
+* Filestore (High performance)
+    * Performance predictable
+    * Lift-Shift millions of files
+
+### GCP - Database Concepts
+
+___OLTP___
+
+* Online transaction processing
+* Simple query
+* Large number of small transactions
+* Traditional RDBMS
+* Database modification
+* Databases - MySQL, PostgreSQL, Oracle, MSSQL
+* ERP, CRM, Banking application
+* GCP - Cloud SQL, Cloud spanner
+
+___OLAP___
+
+* Online analytical processing
+* Data warehousing
+* Data is collected from multiple sources
+* Complex query
+* Data analysis
+* Google Cloud big query - Petabyte Data warehouse
+* Reporting application, Web click analysis, BI Dashboard app
+
+___RTO_RPO___
+
+* RTO - Recovery time objective
+    * Maximum time for which the system can be down
+* RPO - Recovery point objective
+    * Maximum time for which organization can tolerate dataloss
+
+___Durability_Availability___
+
+Durability
+
+* If we lose data it means
+    * Business is down
+    * No business afford to lose data
+* How healthy and resilient our data is
+* Object storage provider measure durability in terms of number of 9's
+
+Availability
+
+* If a region goes down, where data is stored (access)
+    * Replicate data across many regions
+* How much of time data is up/available
+* Data replicated across multiple regions, means higher availability
+* SLA - service level agreement
+* SLA - 99.99%
