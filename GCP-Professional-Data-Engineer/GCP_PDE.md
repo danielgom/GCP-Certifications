@@ -495,3 +495,141 @@ Availability
 * Data replicated across multiple regions, means higher availability
 * SLA - service level agreement
 * SLA - 99.99%
+
+# ~~~~ GCP Database products ~~~~
+
+### Cloud SQL
+
+* Fully managed Relational Database service
+    * Configure needs and do not worry about managing the database
+    * Supports MySQL, PostgreSQL, and SQL server
+    * Regional Service providing High Availability (99.95%)
+    * Use SSDs or HDDs (For best performance: use SSDs)
+    * Up to 416 GB of RAM and 30 TB of data storage
+    * Up to 96 cores
+    * Ondemand backup
+    * Schedule backup
+* Use Cloud SQL for simple relational use cases
+    * To migrate local MySQL, PostgreSQL, and SQL server databases
+    * To reduce maintenance cost for a simple relational database
+    * Use Cloud Spanner (Expensive $$$) instead of Cloud SQL if:
+        * Huge volumes of data is involved (TBs)
+        * Need infinite scaling for growing applications (TBs)
+        * Need global distributed database across multiple regions
+        * Higher Availability (99.999%)
+
+___Important Cloud SQL features___
+
+* Automatic encryption (tables/backups), maintenance and updates
+* High availability and failover:
+    * Create a standby with automatic failover
+    * Pre requisites: Automated backups and Binary logging
+* Read replicas for read workloads:
+    * Options: Cross-zone, Cross-region and External (NON Cloud SQL DB)
+    * Pre requisites: Automated backups and Binary logging
+* Automatic storage increate without downtime - for newer versions
+* Point in time recovery: Enable binary logging
+* Backups (Automated and On-demand backups)
+* Supports migration from other sources
+    * Use database migration service (DMS)
+* Can export data from UI (console) or gcloud with formats
+    * SQL (Recommended if import data into other Databases) and CSV
+
+___Cloud SQL High Availability___
+
+* Create a High availability (HA) Configuration
+    * Choose primary and secondary zones within a region
+    * Two instances: Primary and Secondary instances
+* Changes from primary are replicated synchronously to secondary
+* In case of Zonal failure, automatic failover to secondary instance
+    * If primary zone becomes availiable, failover does not revert automatically
+* High Availability setup CANNOT be used as a Read Replica
+
+___Import and Export___
+
+* From console/gloud/REST API
+    * SQL and CSV formats
+* Large databases, use serverless mode
+    * Reduces performance impact of export on the live database
+
+
+### Cloud Spanner
+
+* Fully managed, mission critical, relational (SQL), globally distributed database with VERY high Availability (99.999%)
+* No Ram, CPU limits
+    * Strong transactional consistency at global scale
+    * Scales to PGs of data with automatic sharding
+* Cloud Spanner scales horizontally for reads and writes
+    * Configure no of nodes
+    * In comparison, Cloud SQL provides read replicas:
+        * BUT cannot horizontally scale write operations with Cloud SQL
+* Regional and Multi-regional configurations
+* Expensive compared to Cloud SQL - Pay for nodes and storage
+* Data Export: Use Cloud console to export data
+    * Other option is to use flow to automate export
+    * No gcloud export option
+* To import and export use Cloud Dataflow
+* The recommended maximum CPU utilization for single-region Spanner instances is 65%
+
+### Cloud Datastore and Firestore
+
+* Datastore - Highly scalable NoSQL Document Database:
+    * Automatically scales and partitions data as it grows
+    * Recommended for upto a few TBs of data
+        * For bigger volumes, BigTable is recommended
+    * Supports Transactions, Indexes and SQL like queries (GQL)
+        * Does NOT support joins or Aggregate (sum or count) operations
+    * For use cases needing flexible schema with transactions
+    * Structure: Kind - Entity (Use namespaces to group entities)
+    * Can export data ONLY from gcloud (NOT from cloud console)
+        * Export contains a metadata file and a folder with the data
+* Firestore = Datastore++: Optimized for multi device access
+    * Offline mode and data synchronization across multiple devices - mobile, IOT etc
+    * Provides client side libraries - Web, iOS, Android and more
+    * Offers Datastore and Native modes
+* To import and Export to/from Cloud Storage
+    * From console/gcloud/REST API
+* In the project you can either use Datastore or Firestore not both
+
+### Cloud MemoryStore
+
+* In-memory datastore service, fully managed: Reduce access times
+* Only internal IP address
+* Fully managed
+    * Highly available with 99.9% availability SLA
+    * Monitoring can be easily setup using Cloud Monitoring
+* Support for Redis and Memcached
+    * Use memcached for caching
+        * Reference data, database query caching, session store etc
+    * Use Redis for low latency access with persistence and high availability
+        * Gaming Leader boards, Player Profiles, in memory stream processing, etc
+
+### Cloud BigTable
+
+* Petabyte scale, wide column NoSQL DB (HBase API compatible)
+* Column are grouped into column family
+* Designed for huge volumes of analytical and operational data
+    * IOT Streams, Analytics, Time series Data etc
+* Handle millions of read/write TPS at very low latency
+* Single row transactions (multi-row transactions not supported)
+* NOT Serverless - need to create a server instance (SSD or HDD)
+    * Scale horizontally with multiple nodes (No downtime for cluster resizing)
+    * Scale to huge volume of data
+* Cannot export data using cloud console or gcloud
+    * Either use a Java application
+    * Use HBase commands
+* Use cbt command line tool to work with BigTable (NOT gcloud)
+    * cbt createtable my-table
+* Can configure the project with cbt in .cbtrc file
+* To import and Export to/from Cloud Storage
+    * Create Dataflow Jobs
+    * Formats: AVRO,PARQUET,SequenceFiles
+* Ensure that service accounts have access to Cloud Storage Buckets
+    * ACL
+    * Roles Storage Admin or Storage Object Admin or Storage Object creator
+* Used for 
+    * Financial Data
+    * Time series Data
+* Seamless integration with
+    * Big query - Warehouse
+    * Machine learning products
