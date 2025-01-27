@@ -633,3 +633,143 @@ ___Import and Export___
 * Seamless integration with
     * Big query - Warehouse
     * Machine learning products
+
+# ~~~~ GCP Data Processing ~~~~
+
+### BigQuery - Datawarehouse
+
+* Exabyte scale modern Datawarehousing solution from GCP (serverless)
+    * Relational database (SQL, schema, consistency, etc)
+        * Use SQL-Like commands to query massive datasets
+    * Traditional (Storage + Compute) + modern (Realtime + serverless)
+* Importing and exporting data and formats becomes very important
+    * Load data from a variety of sources, incl. streaming data
+        * Variety of import formats
+    * Export to Cloud Storage (long term storage) & Data studio (visualiztion)
+        * Multiple formats - CSV,JSON,AVRO
+* Automatically expire data
+* Not a transactional purpose database
+* Query external datasources without storing data in BigQuery
+    * Cloud Storage, Cloud SQL, BigTable, Google Drive
+    * Use permanent and temporary external tables
+* Access big query
+    * Cloud console
+    * bq command-line tool (NOT gcloud)
+    * BigQuery REST API OR
+    * HBase API based libraries
+* BigQuery queries can be expensive if run against large datasets
+* Always estimate BigQuery queries before running
+    * Use UI/bg - Get scanned data volume estimate
+    * Use pricing calculator: Find price for scanning 1 MB data. Calculate cost
+
+* BigQuery data organization
+    * Projects -- Datasets -- Tables -- Jobs
+* Projects are top level containers in GCP
+* Datasets hold multiple tables, projects contain 1 or more datasets
+* Each table must belong to a dataset
+* Assing Role at the organization, project and dataset level
+* Tables contain data -- Schema
+* Types of tables
+    * Native tables
+    * External tables
+    * View
+* Jobs can manage asynchronous tasks
+    * Load job
+    * Query job
+    * Extract job
+    * Copy job
+
+___Import and Export___
+
+* From console/bq
+    * Formats - CSV,JSON,AVRO
+* Variety of options to import data:    
+    * Load data from Cloud Storage
+    * Batch Loading with BigQuery Data Transfer Service
+    * Use Dataflow to setup streaming pipeline
+
+___Remember___
+
+* BigQuery, Datastore, Firebase does NOT need VM configuration (Serverless)
+* User big query only if
+    * When workload is analytical
+    * When data does not change in database, as bigquery use built in cache
+    * Complex queries
+    * When querying takes more execution time
+    * Large volumes of data
+    * No joins -- Denormalized data
+* Expensive querying with BigQuery, dry run before running any query
+* Cloud SQL and BigTable need VM configuration
+* Relational Databases
+    * Small local databases - Cloud SQL
+    * Highly scalable global databases - Cloud Spanner
+    * Datawarehouse - Bigquery
+* NoSQL Databases
+    * Transactional database for a few Terabytes of data - Cloud Datastore
+    * Huge volumes of IOT or streaming analytics data - Cloud BigTable
+
+### Pub/Sub
+
+Reliable, scalable, fully-managed asynchronous messaging service
+
+* Backbone for highly available and Highly scalable solutions
+    * Auto scale to process billions of messages per day
+    * Low cost (pay for use)
+* Usecases: Event ingestion and delivery for streaming analytics pipelines
+* Supports push and pull message deliveries (Like combination of AWS SNS + SQS)
+
+* Publisher - sender of a message
+    * Publisher send messages by making HTTPS requests to pubsub.googleapis.com
+* Subscriber - Receiver of the message
+    * Pull - Subscriber pulls messages when ready
+        * Subscriber makes HTTPS requests to pubsub.googleapis.com
+    * Push - Mesasges are sent to subrscribers
+        * Subscribers provide a web hook endpoint at the time of registration
+        * When a message is received on the topic, A HTTPS POST request is sent to the web hook
+        endpoints
+    * Write to Google cloud storage
+        * Can create a GCS subscription and create a new object per message
+    * Write to BigQuery
+        * Can write to a databaser and table schema, dead lettering recommended
+* Very flexible publishers and subscribers relationships
+    * Many to Many, One to One, Many to One, One to Many
+* Max size of a message is 10MB
+
+___Message processing___
+
+1. Topic is created
+2. Subscriptions are created
+    * Subscribers register to the topic
+    * Each subscription represents discrete pull of messages from a topic
+    * Multiple clients pull same subscription => messages split between clients
+    * Multiple clients create a subscription each => each client will get every message
+3. Publisher sends a message to the Topic
+4. Message individually delivered to each and every subscription
+    * Subscribers can receive messages either by
+        * Push: Pub/sub sends the message to subscriber
+        * Pull: Subscribers poll for messages
+5. Subscribers send acknowledgements
+6. Messages are removed from subscriptions message queue
+    * Pub/Sub ensures the message is retained per subscription until it is acknowledged
+
+### Pub/Sub Lite
+
+* Partition base messaging service
+* Its not global it is zonal or regional
+* Lower cost, lower reliability
+* No automation, manual provision required for storage & Throughput
+* Regional lite has same SLA as Pub/Sub
+    * Regional lite topics replicate data to a other zone asynchronously
+    * Where as Pub/sub synchronously replicate data
+* Zonal lite has no SLA
+    * Stored in only one zone
+* Need to pay for capacity provisioned
+* No dead lettering
+* No Exactly once delivery
+* No CMEK
+* No cross-project subscriptions
+* No message filtering
+* No message Schema validation
+* No REST endpoints
+* Only standard subscriptions supported
+* Only Java, Python, Golang support
