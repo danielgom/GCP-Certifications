@@ -773,3 +773,160 @@ ___Message processing___
 * No REST endpoints
 * Only standard subscriptions supported
 * Only Java, Python, Golang support
+
+### Cloud Dataflow
+
+Streaming realtime batch processing service
+
+Advanced unified programming model to implement batch and streaming data processing jobs that run on various execution engines/runners
+
+* Fully managed
+* Horizontal autoscaling of workers
+* Example pipelines
+    * Pub/sub -> Dataflow -> BigQuery(Streaming)
+    * Pub/sub -> Dataflow -> Cloud storage (Streaming - files)
+    * Cloud storage -> Dataflow -> BigTable/CloudSpanner/Datastore/BigQuery  (Batch load data into databases)
+    * Bulk compress files in Cloud Storage (Batch)
+    * Convert files formats between Avro, Parquet & CSV (batch)
+* Streaming and Batch Usecases
+    * Realtime Fraud Detection, Sensor Data Processing, Log Data Processing, Batch processing (Load data, convert formats)
+* Use pre-built templates
+* Cloud version of Apache Beam (supports Java, Python, Go)
+* Serverless (Autoscale automatically)
+* Jobs created with
+    * Pre-defined templated
+    * Notebook instance
+        * Write data pipeline job in Java, Python SQL
+
+* Flow
+    1. Write job in Java, Python or Go
+    2. Unified API for both batch + stream processing
+        * No need to separately handle batch & streaming data
+    3. Execution
+        * Direct runner
+            * Scaling issue (testing locally)
+        * Apache flink
+        * Apache spark
+        * Cloud Dataflow (inside GCP)
+* Pipeline
+    * A pipeline is a graph of transformations that a user constructs that defines the data processing they want to do
+* Io-Transform
+* Pcollectiopn
+    * Fundamental data type in Beam
+        * One Pcollection -to- Pcollection
+* Ptransform
+    * The operations executed within a pipeline
+* Runner - execution engine
+
+### Cloud Dataproc
+
+Cloud managed services for Spark and Hadoop
+
+* Variety of jobs are supported
+    * Spark, PySpark, SparkR, Hive, SparkSQL, Pig, Hadoop
+* Perform complext batch processing
+* Multiple cluster Modes
+    * Single node / Standard / High Availability (3 masters)
+        * Standard (1 master, N workers)
+        * Single node (1 master, 0 workers) -- testing
+        * High availability (3 masters, N workers)
+    * Use regular / preemptible VMs
+* Worker node regular VM or Preemtible VM (Cost reduction)
+* Use case: Move Hadoop and Spark clusters to the cloud
+    * Perform machine learning and AI development using opensource frameworks
+* Cloud dataproc is a data analysis platform
+    * Can export cluster configuration but not Data
+* BigQuery (Alternative) - When we run SQL queries on petabytes
+    * Go for Cloud Dataproc when we need more than queries (Batch Processing, Machine Learning, AI Workloads)
+
+### Cloud Data Fusion
+
+Fully managed cloud native solution to quickly build data pipelines
+
+* Code free, Drag-n-drop tool
+* 150+ preconfigured connectors & transformations
+* Built with Open-source CDAP
+* 3 editions available
+    * Developer -- $250 per month
+    * Basic -- $1100 per month
+    * Enterprise -- $3000 per month
+
+### Cloud Composer
+
+Fully managed apache airflow instance in GCP
+
+* Airflow is a workflow & orchestration engine
+* With airflow, one can programmatically schedule and monitor workflows
+* Workflows are defined as directed acyclic graphs (DAGs)
+* DAGs are written in Python 3.x
+* Built-in integration for other GCP services
+    * Google BigQuery
+    * Cloud Dataflow & Dataproc
+    * Cloud Datastore
+    * Cloud Storage
+    * Cloud Pub/Sub, and Cloud ML Engine
+
+### Data Loss Prevention API
+
+* Fully managed service designed to help discover, classify and protect most sensitive data
+* PII data
+    * Person's name, Credit Card Number, SSN
+* Apply API on Cloud storage, BigQuery Data
+* DLP work upon Free form text, Structured & Unstructured data (image)
+* What to do with this Data
+    * Identify sensitive data
+    * De-identify data
+        * Masking and Encryption
+    * Re-identify (In case we want to recover original data)
+
+* Match Likelyhood
+    * LIKELIHOOD_UNSPECIFIED - Default value; same as POSSIBLE
+    * VERY_UNLIKELY - It is very unlikely that data matches the given InfoType
+    * UNLIKELY - It is unlikely that data matches the given InfoType
+    * POSSIBLE - It is possible that data matches the given InfoType
+    * LIKELY - It is likely that data matches the given InfoType
+    * VERY_LIKELY - It is very likely that data matches the given InfoType
+
+___De-Identification of Data___
+
+* Redacation - Remove sensitive data
+* Replacement - Replace with some tokens (Like info_type)
+* Masking - Replace one or more characters with some other character
+* Encryption - Encrypt sensitive data
+
+___Templates___
+
+* Configuration which define for
+    * Inspection of jobs
+    * De-identification of jobs
+* Once Template defined, can be reused for other jobs
+
+
+___Infotypes___
+
+* What to scan for like:
+    * Credit cards
+    * Social Security Number (SSN)
+    * Age
+* Can create custom infotypes or use one of the 120+ defined Built-in infotypes
+
+### Data Catalog
+
+Most organizations today are dealing with a large and growing number of data assets
+
+* Data stakeholders (consumers, producers, and administrators) face a number of challenges:
+    * Searching for insightful data
+    * Understanding data
+    * Making data useful
+* Data catalog
+    * A fully managed and highly scalable data discovery and metadata management service
+    * Single place to discover all data, asset across all projects
+* Using Data catalog
+    * Search data asserts
+    * tag data
+* Technical metadata
+    * For BigQuery, Pubsub these metadata resides inside individual products
+    * Technical meta data being registered by catalog automatically
+* Business Metadata
+    * Attach tag to existing data asset
+    * Define some tag template and attach metadata
