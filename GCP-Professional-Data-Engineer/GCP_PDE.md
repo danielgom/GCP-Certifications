@@ -774,7 +774,7 @@ ___Message processing___
 * Only standard subscriptions supported
 * Only Java, Python, Golang support
 
-### Cloud Dataflow
+### Cloud Dataflow
 
 Streaming realtime batch processing service
 
@@ -818,7 +818,7 @@ Advanced unified programming model to implement batch and streaming data process
     * The operations executed within a pipeline
 * Runner - execution engine
 
-### Cloud Dataproc
+### Cloud Dataproc
 
 Cloud managed services for Spark and Hadoop
 
@@ -839,7 +839,7 @@ Cloud managed services for Spark and Hadoop
 * BigQuery (Alternative) - When we run SQL queries on petabytes
     * Go for Cloud Dataproc when we need more than queries (Batch Processing, Machine Learning, AI Workloads)
 
-### Cloud Data Fusion
+### Cloud Data Fusion
 
 Fully managed cloud native solution to quickly build data pipelines
 
@@ -851,7 +851,7 @@ Fully managed cloud native solution to quickly build data pipelines
     * Basic -- $1100 per month
     * Enterprise -- $3000 per month
 
-### Cloud Composer
+### Cloud Composer
 
 Fully managed apache airflow instance in GCP
 
@@ -866,7 +866,7 @@ Fully managed apache airflow instance in GCP
     * Cloud Storage
     * Cloud Pub/Sub, and Cloud ML Engine
 
-### Data Loss Prevention API
+### Data Loss Prevention API
 
 * Fully managed service designed to help discover, classify and protect most sensitive data
 * PII data
@@ -910,7 +910,7 @@ ___Infotypes___
     * Age
 * Can create custom infotypes or use one of the 120+ defined Built-in infotypes
 
-### Data Catalog
+### Data Catalog
 
 Most organizations today are dealing with a large and growing number of data assets
 
@@ -930,3 +930,237 @@ Most organizations today are dealing with a large and growing number of data ass
 * Business Metadata
     * Attach tag to existing data asset
     * Define some tag template and attach metadata
+
+# ~~~~ GCP Data Analysis and ML ~~~~
+
+### Machine learning basics
+
+* Design spam email classification system
+* How to design?
+* What rules we will need inside the system?
+    * If message coming from some specified list of senders, spam it
+    * If message contain word like lottery, promotion, spam it
+* But how many rules?
+* Very diffucult & cumbersome task to desing in such way
+* Intelligent approach needed
+* ML is the solution behind it
+
+Machine learning learns from data
+
+* Training + testing kind of system
+
+___Types of ML systems___
+
+
+### Supervised learning
+
+* Supervised learning
+    * Label has been given
+    * Regression
+    * Classification
+* Unsupervised learning
+    * No labels
+    * Find Structure within data
+
+
+___Regression___
+
+* Output prediction is continous in nature
+    * Example: House price predition
+* Regression ML Algorithm
+    * Linear Regression
+    * SVR
+    * Decision Tree Regressor
+
+___Classification___
+
+* Output prediction is discrete in nature
+    * Example: Sentiment analysis of review
+        * This product is very much helpful: +ve
+    * Example: Is it orange?
+        * Yes/No
+* Classification Algorithm
+    * Logistic Regression
+    * SVM
+    * KNN
+    * Decision Tree Classification
+
+### Unsupervised learning
+
+* No label given
+* Find structure within data
+* Clustering is a type of unsupervised learning
+* Some clustering Algorithms
+    * K-Means
+    * Hierarchical
+
+
+### Machine learning workflow
+
+1. Ingesting data
+2. Data preparation
+3. Split data (Training + Testing)
+4. Apply ML Algorithm to the training data
+5. Testing Data
+6. Model
+7. Ready for predictions
+
+
+___GCP Machine learning services___
+
+* GCP ML Solutions
+* Pre-trained model
+    * Generic use cases
+    * Vision API, Speech API, Language API
+* Auto ML
+    * Upload our Data and rest, GCP will take care of it
+* Custom Training
+    * Tensorflow, PyTorch, Scikit-learn
+    * SparkML
+    * BigQuery ML
+
+### GCP Dataprep (Data preparation)
+
+* Intelligent data preparation tool
+* Visually explore, clean , and prepare data for analysis and machine learning
+* Build by Trifacta - Third Party Tool, not cloud native
+* This is a no-code tool
+* Dataprep is serverless and it works at any scale
+* No infrastructure to deploy or manage
+* Automatically detect schema, anomalies
+* Do all time consuming task easily
+* Concern - Need to share data with Trifacta
+
+
+### GCP ML Pre-trained Model
+
+* Google has huge amounts of data
+* Google has already trained ML/AI algorithms to build models
+* For generic use cases like
+    * Object recognition/detection - Vision API
+    * OCR
+    * Speech to Text
+    * Language Translation
+    * NLP API - to get insight from natural language
+* No training required from customer
+* Use already created Rest API for above cases
+
+___Vision API___
+
+* Derive insights from images
+    * Detect printed and handwritten text
+    * Detect objects
+    * Identify popular places and product logos
+    * Moderate content
+    * Celebrity recognition
+* How to use
+    * Web UI - Just for testing
+    * gcloud - CLI
+    * Python SDK
+
+___Natural Language API___
+
+* Derive insights from structured text using Google machine learning
+    * Identify entities within documents
+    * Sentiment analysis
+    * Content classification
+* How to use
+    * gcloud - CLI
+    * Python SDK
+
+___SpeechToText -> TextToSpeech API___
+
+* Speech to text API
+    * Accurately convert speech into text using an API powered by Google's AI technologies
+    * Supports 125 languages
+    * Streaming speech recognition
+    * Content filtering
+    * Automatic punctuation
+
+* Text to speech API
+    * Convert text into natural-sounding speech using an API powered by Google's AI technologies
+
+### GCP Auto machine learning (Auto ML)
+
+* AutoML - Auto machine learning
+* Case is not generic
+* There is a custom requirement
+* Vision API - recognize shoes
+* AutoML - Different types of shoes detection
+    * Adidas, Nike, etc...
+* Upload our data & GCP will create the best model for us
+* State-of art Transfer learning technology
+
+### GCP Custom model
+
+* We own
+    * Dataset
+    * Data scientist
+* We want
+    * Train our own model
+    * Write our own algorithm based on
+        * Scikit-learn, XGBoost
+        * TensorFlow
+        * PyTorch Framework
+* Notebook instance
+* Build logistic regression model for flower species recognition (example)
+* Save model in pickle file
+* Deploy model endpoint
+
+### GCP BigQuery ML
+
+* Create ML model in SQL
+* No programming language needed
+* No need to export data to other environments
+* Model support
+    * Linear Regression
+    * Multiclass Logistic Regression
+    * K-Means
+    * XGBoost
+    * TensorFlow - Import
+* Use case demo
+    * Flower species recognition
+    * From BigQuery public dataset
+
+___Main Bigquery Function___
+
+* Create model
+    * Model Type - Linear Reg, Logistic reg
+    * Label Column
+    * Learning Rate
+* Evaluate model
+    * ML.Evaluate
+    * Provide Model & Test Data
+    * Determine how good model perfomance on Test data
+* Prediction
+    * ML.Prediction
+    * Apply live data to model to get prediction
+
+### GCP Data Studio
+
+* BI tool from google
+* Connect our data from spreadsheets, Analytics, Google ads, BigQuery and many more connectors
+* Drag & Drop, no code
+* Create reports & Dashboards
+* Free
+
+# ~~~~ GCP Apache Beam (Dataflow continuation) ~~~~
+
+* Apache beam was created as a MapReduce model
+* Google developed many in-house products based on MapReduce
+* Independently, Hadoop born based on MapReduce concept
+* Hadoop is open source
+* Apache Beam can be run ioFlume, Flick, Spark, Dataflow
+* Top level Apache Open Source Projects
+* Started 2016
+* Apache Beam is a unified programming model that can build portable Big Data pipelines
+* Unified API to process Both batch & Streaming Data
+* Batch + Stream = Beam
+* Beam supports Java, Python, Go
+* Once pipeline is created, it can be executed on any execution framework
+* Spark. Flink, Apex, Cloud Data Flow
+* Is apache beam faster than Spark or Flink
+    * Invalid comparison
+* Beam is a programming model, not an execution engine
+* Is spark faster than flink
+    * Valid comparison
