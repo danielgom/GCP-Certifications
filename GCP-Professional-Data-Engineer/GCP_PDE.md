@@ -1164,3 +1164,12 @@ ___Main Bigquery Function___
 * Beam is a programming model, not an execution engine
 * Is spark faster than flink
     * Valid comparison
+
+
+# ~~~~ GCP Datastream ~~~~
+
+* Serverless data capture & replication service
+* Stream real-time changes to big-query
+* Captures (insert, update, delete) from source database and send changes to big query
+* Supports MySQL, PostgreSQL, Oracle to bigeury and GCS
+* Schema drift resolution
