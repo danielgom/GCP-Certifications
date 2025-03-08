@@ -607,7 +607,7 @@ ___Import and Export___
 ### Cloud BigTable
 
 * Petabyte scale, wide column NoSQL DB (HBase API compatible)
-* Column are grouped into column family
+* Column are grouped into column family (Disk performance)
 * Designed for huge volumes of analytical and operational data
     * IOT Streams, Analytics, Time series Data etc
 * Handle millions of read/write TPS at very low latency
@@ -1173,3 +1173,23 @@ ___Main Bigquery Function___
 * Captures (insert, update, delete) from source database and send changes to big query
 * Supports MySQL, PostgreSQL, Oracle to bigeury and GCS
 * Schema drift resolution
+
+
+# ~~~~ GCP PDE Exam findings ~~~~
+
+What is the option for Dataflow in order to process the jobs are not time-critical, and the CTO is willing to accept longer execution times if that can lower costs?
+
+* Implement Dataflow FlexRS (Flexible Resource Scheduling)
+
+Which of the following best corresponds to a single row in a relational database within the Firestore data model?
+
+* Entity
+
+You are training a neural network for a classification task, but the model's precision and recall metrics remain unsatisfactory. After verifying that overfitting is not a concern, which of the following strategies is most likely to improve the model's precision and recall?
+
+* Increase the number of training instances (more data)
+
+Which of the following types of indexes are automatically created for each field in a Cloud Firestore document?
+
+* Single-field indexes for atomic values in descending order
+* Single-field indexes for atomic values in ascending order
