@@ -679,6 +679,16 @@ ___Import and Export___
     * Extract job
     * Copy job
 
+___Time travel___
+
+Time travel in BigQuery allows you to query data stored in a table at any point in the past within the past seven days. This feature is helpful in recovering from a corruption event as you can access the historical data before the corruption occurred.
+
+___Omni Connection___
+
+
+BigQuery Omni accesses Amazon S3 data through connections. Each connection has its unique Amazon Web Services (AWS) Identity and Access Management (IAM) user. You grant permissions to users through AWS IAM roles.
+
+
 ___Import and Export___
 
 * From console/bq
@@ -686,7 +696,20 @@ ___Import and Export___
 * Variety of options to import data:    
     * Load data from Cloud Storage
     * Batch Loading with BigQuery Data Transfer Service
+    * Bigquery transfer service can only transfer data between clouds with internet access
     * Use Dataflow to setup streaming pipeline
+
+___Big query data transfer service___
+
+* Bigquery transfer service can only transfer data between clouds with internet access
+* Can transfer between GCP services 
+    * Cloud Storage → BigQuery
+    * Google Ads → BigQuery
+    * Google Analytics 360 → BigQuery
+    * Search Ads 360 → BigQuery
+* Cannot transfer data in real time
+* Cannot extract Data directly from Cloud SQL or Spanner (Use Datastream or Dataflow instead)
+* Cannot extract data from pub/sub (use dataflow)
 
 ___Remember___
 
@@ -734,6 +757,7 @@ Reliable, scalable, fully-managed asynchronous messaging service
 * Very flexible publishers and subscribers relationships
     * Many to Many, One to One, Many to One, One to Many
 * Max size of a message is 10MB
+* Max days pub/sub can retain messages is 31 days
 
 ___Message processing___
 
@@ -1171,9 +1195,41 @@ ___Main Bigquery Function___
 * Serverless data capture & replication service
 * Stream real-time changes to big-query
 * Captures (insert, update, delete) from source database and send changes to big query
-* Supports MySQL, PostgreSQL, Oracle to bigeury and GCS
+* Supports MySQL, PostgreSQL, Oracle to bigquery and GCS
 * Schema drift resolution
 
+
+# ~~~~ GCP Cloud interconnect ~~~~
+
+* High speed physical connection between on-premise and VPC networks:
+    * Highly available and high throughput
+    * Two types of connections possible
+        * Dedicated interconnect - 10 Gbps or 100 Gpbs configurations
+        * Partner interconnect - 50 Mbps to 10Gbps configurations
+* Data exchange happens through private network
+    * Communicate using VPC networks internal IP addresses from on-premise network
+    * Reduces egress costs
+        * As public internet is NOT used
+* Supported Google APIs and services can be privately accessed from on-premise
+* Use only for high bandwidth needs
+    * For low bandwidth, Cloud VPN is recommended
+
+# ~~~~ GCP Cloud VPN ~~~~
+
+* Connect on-premise network to the GCP network
+    * Supports private IPs routing
+    * Implemented using IPSec VPN tunnel
+    * Traffic through internet (public)
+    * Traffic encrypted using Internet Key Exchange protocol
+* Two types of Cloud VPN solutions
+    * HA VPN (SLA of 99.99% service availability with two external IP addresses)
+        * Only dynamic routing (BGP) supported
+    * Classic VPN (SLA of 99.9% service availability, a single external IP address)
+        * Supports static routing (policy-based, route-based) and dynamic routing using BGP
+
+# ~~~~ GCP Dataplex ~~~~
+
+Dataplex is a platform designed for managing, analyzing, and monitoring data across various sources. It helps in organizing and governing data in a cost-effective manner while providing capabilities for data management, data lineage tracking, and data quality validation. By using Dataplex, the healthcare organization can address the challenges of a decentralized ecosystem and improve data management efficiency.
 
 # ~~~~ GCP PDE Exam findings ~~~~
 
@@ -1193,3 +1249,57 @@ Which of the following types of indexes are automatically created for each field
 
 * Single-field indexes for atomic values in descending order
 * Single-field indexes for atomic values in ascending order
+
+What should you do to create a BigQuery reservation that applies to the CDC process and ensures predictable costs?
+
+* Create a BigQuery reservation for the project.
+
+What should you do to capture late data in the appropriate window for accurate aggregation?
+
+* Use watermarks to define the expected data arrival window. Allow late data as it arrives.
+
+Question:
+What should you do to ensure that data is streamed into BigQuery with exactly-once delivery semantics?
+
+**Not part of question**
+Quota limit might change with time. You do not need to worry about the quota limit numbers.
+
+As of Nov 2024, the throughput quota has been updated to - 3 GB per second throughput in multi-regions; 300 MB per second in regions
+
+* Use the BigQuery Storage Write API and ensure that your target BigQuery table is regional.
+
+ You need to quickly adopt a cost-efficient solution that addresses the following requirements:
+
+Data management and discovery
+
+Data lineage tracking
+
+Data quality validation
+
+Question:
+Which solution should you implement to address these requirements?
+
+* Use Dataplex to manage data, track data lineage, and perform data quality validation.
+
+You designed a data warehouse in BigQuery to analyze sales data. You need a self-service, low-maintenance, and cost-effective way to share the sales dataset with other business units in your organization.
+
+Question:
+What should you do to achieve this?
+
+* Create an Analytics Hub private exchange, and publish the sales dataset.
+
+You are designing a data transformation solution for BigQuery. Your developers are skilled in SQL and prefer to use the ELT (Extract, Load, Transform) development approach. They require an intuitive coding environment and the ability to manage SQL as code.
+
+Question:
+What solution should you choose to enable your developers to build and manage SQL pipelines effectively?
+
+* Use Dataform to build, manage, and schedule SQL pipelines.
+
+
+You are managing a Dataplex environment with raw and curated zones. A data engineering team uploads JSON and CSV files to a bucket asset in the curated zone, but Dataplex is not automatically discovering these files. You need to ensure Dataplex can automatically discover these files.
+
+Question:
+
+What should you do to make sure the JSON and CSV files are automatically discovered by Dataplex?
+
+* Move the JSON and CSV files to the raw zone.
